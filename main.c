@@ -58,7 +58,7 @@ void initGL()
 #endif
 	glEnable(GL_TEXTURE_2D); // enable texture mapping
 	glShadeModel(GL_SMOOTH); // enable smooth shading
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // get clear background (black color)
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // get clear background (black color)
 	glClearDepth(1.0f); // color depth buffer
 	glDepthFunc(GL_LEQUAL); // configuration of depth testing
 							//enable additional options regarding: perspective correction, anti-aliasing, etc
@@ -89,24 +89,45 @@ void reshape(int width, int height)
 }
 
 
+void loadTexture()
+{
+#if DEBUG == 1
+	printf("\nloadTexture\n");
+#endif
+	GLuint texture[1]; // declaring space for one texture
+	int twidth, theight; // declaring variable for width and height of an image
+	unsigned char* tdata; // declaring pixel data
+						  // loading image data from specific file:
+	tdata = loadPPM("auto3.ppm", &twidth, &theight);
+	if (tdata == NULL) return; // check if image data is loaded
+							   // generating a texture to show the image
+	glGenTextures(1, &texture[0]);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	// printf("width: %d\n height: %d\n", twidth, theight);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+}
+
+
 void display() {
 #if DEBUG == 1
 	printf("\nDisplay\n");
 #endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	
+//glBindTexture(GL_TEXTURE_2D, texName);
 	glBegin(GL_QUADS);
-	glColor3f(0.0, 0.0, 1.0);
+	glColor3f(1.0, 1.0, 1.0);
 	// draw the canvas over the given area
 	
-	glTexCoord2f(0, 0); 
-	glTexCoord2f(0, WINDOW_HEIGHT); 
-	glTexCoord2f(WINDOW_WIDTH, WINDOW_HEIGHT); 
-	glTexCoord2f(WINDOW_WIDTH, 0);
+	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
+	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
+	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
+	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	 
-	/*
-	glColor3f(0.0, 1.0, 0.0);
+	
+	/*glColor3f(1.0, 1.0, 1.0);
 	glVertex3f(0, WINDOW_HEIGHT * 0.75f, 0);
 	glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75f, 0);
 	glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25f, 0);
@@ -129,9 +150,11 @@ void display() {
 	glVertex3f(100.0f, 12.0f, 0.0f);
 	glVertex3f(100.0f, 48.7f, 0.0f);
 	glVertex3f(25.0f, 48.7f, 0.0f);
-
+	
 	glEnd();
 	glutSwapBuffers();
+
+
 }
 
 
@@ -141,25 +164,7 @@ void idle()
 
 }
 
-void loadTexture()
-{
-#if DEBUG == 1
-	printf("\nloadTexture\n");
-#endif
-	GLuint texture[1]; // declaring space for one texture
-	int twidth, theight; // declaring variable for width and height of an image
-	unsigned char* tdata; // declaring pixel data
-						  // loading image data from specific file:
-	tdata = loadPPM("auto3.ppm", &twidth, &theight);
-	if (tdata == NULL) return; // check if image data is loaded
-							   // generating a texture to show the image
-	glGenTextures(1, &texture[0]);
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	}
 
 
 
@@ -185,8 +190,8 @@ int main(int argc, char** argv) {
 	// function called when nothing else is executing and CPU is free
 	glutIdleFunc(idle);
 	initGL();
-
 	loadTexture();   //enable this to load image
+	
 	/* 3) START GLUT PROCESSING CYCLE */
 	glutMainLoop();
 	return 0;
