@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
-
+#define ROTATE 1
 #define DEBUG 1
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
@@ -136,35 +136,50 @@ void display() {
 	printf("\nDisplay\n");
 #endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//glBindTexture(GL_TEXTURE_2D, texName);
+	// draw the canvas for the car image
+	// I am going to apply the image as a texture to a rectangle (polygone)
 	glBegin(GL_QUADS);
-	glColor3f(1.0, 1.0, 1.0);
-	// draw the canvas over the given area
+		glColor3f(1.0, 1.0, 1.0);
+		glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
+		glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
+		glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
+		glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
+	glEnd();
 	
-	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
-	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
-	 
-	glColor3f(1.0, 0.0, 0.0);   //choosing red color
-	glVertex3f(0.0f, 0.0f, 0.0f);   
-	glVertex3f(50.00f, 0.0f, 0.0f);
-	glVertex3f(50.00f, 50.00f, 0.0f);
-	glVertex3f(0.0f, 50.00f, 0.0f);
-	
-	glColor3f(0.0, 1.0, 0.0);   //choosing green color
-	glVertex3f(100.0f, 100.0f, 0.0f);   
-	glVertex3f(120.0f, 100.0f, 0.0f);
-	glVertex3f(120.0f, 120.0f, 0.0f);
-	glVertex3f(100.0f, 120.0f, 0.0f);
+	// glRotatef (45.0f, 0.0f, 0.0f, 1.0f);
+	glBegin(GL_QUADS);
 
-	glColor3f(0.0, 0.0, 1.0);   //choosing blue color
-	glVertex3f(25.0f, 10.0f, 0.0f);   
-	glVertex3f(100.0f, 12.0f, 0.0f);
-	glVertex3f(100.0f, 48.7f, 0.0f);
-	glVertex3f(25.0f, 48.7f, 0.0f);
+		glColor3f(1.0, 0.0, 0.0);   //choosing red color
+		glVertex3f(0.0f, 0.0f, 0.0f);   
+		glVertex3f(50.00f, 0.0f, 0.0f);
+		glVertex3f(50.00f, 50.00f, 0.0f);
+		glVertex3f(0.0f, 50.00f, 0.0f);
+	glEnd();
+	// glRotatef(-45.0f, 0.0f, 0.0f, 1.0f);
+	glBegin(GL_QUADS);
+		glColor3f(0.0, 1.0, 0.0);   //choosing green color
+		glVertex3f(100.0f, 100.0f, 0.0f);   
+		glVertex3f(120.0f, 100.0f, 0.0f);
+		glVertex3f(120.0f, 120.0f, 0.0f);
+		glVertex3f(100.0f, 120.0f, 0.0f);
+	glEnd();
+
+	glPushMatrix();
+#if ROTATE == 1
+	glTranslatef(-25.0f, -10.0f, -1.0f);
+	glRotatef (40.0f, 0.0f, 0.0f, 1.0f);
+	//glTranslatef(25.0f, 10.0f, -1.0f);
+#endif
+	glBegin(GL_QUADS);
+		glColor3f(0.0, 0.0, 1.0);   //choosing blue color
+		glVertex3f(25.0f, 10.0f, 0.0f);   
+		glVertex3f(100.0f, 12.0f, 0.0f);
+		glVertex3f(100.0f, 48.7f, 0.0f);
+		glVertex3f(25.0f, 48.7f, 0.0f);
 
 	glEnd();
+
+	glPopMatrix();
 	glutSwapBuffers();
 
 }
