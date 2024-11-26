@@ -62,6 +62,10 @@ void initGL()
 #if DEBUG == 1
 	printf("\ninitGL\n");
 #endif
+	// init alpha blending function
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	glEnable(GL_TEXTURE_2D); // enable texture mapping
 	glShadeModel(GL_SMOOTH); // enable smooth shading
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // get clear background (black color)
@@ -149,21 +153,21 @@ void display() {
 	
 	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
 	glTranslatef(405.0f, 104.0f, -1.0f);
-	glColor3f(1.0, 0.0, 0.0);   //choosing red color
+	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);   //choosing red color
 	
 	glBegin(GL_QUADS);
 		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(50.00f, 0.0f, 0.0f);
-		glVertex3f(50.00f, 21.00f, 0.0f);
-		glVertex3f(0.0f, 21.00f, 0.0f);
+		glVertex3f(45.00f, 0.0f, 0.0f);
+		glVertex3f(45.00f, 17.00f, 0.0f);
+		glVertex3f(0.0f, 17.00f, 0.0f);
 		
 	glEnd();
 
 	
 	glLoadIdentity();
 	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(390.0f, 130.0f, -1.0f);
-	glColor3f(1.0f, 0.0f, 0.0f);   //choosing green color
+	glTranslatef(390.0f, 125.0f, -1.0f);
+	glColor4f(1.0f, 0.0f, 0.0f, 0.65f);   //choosing green color
 		
 	glBegin(GL_QUADS);
 		glVertex3f(0.0f, 0.0f, 0.0f);   
@@ -174,8 +178,8 @@ void display() {
 	
 	glLoadIdentity();
 	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(375.0f, 152.0f, -1.0f);
-	glColor3f(1.0f, 0.0f, 0.0f);   //choosing red color
+	glTranslatef(375.0f, 147.0f, -1.0f);
+	glColor4f(1.0f, 0.0f, 0.0f, 0.5f);   //choosing red color
 		
 	glBegin(GL_QUADS);
 		glVertex3f(0.0f, 0.0f, 0.0f);   
