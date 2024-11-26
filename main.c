@@ -148,43 +148,42 @@ void display() {
 	glEnd();
 	
 	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	//glTranslatef(150.0f, 400.0f, -1.0f);
-
-	glTranslatef(405.0f, 105.0f, -1.0f);
+	glTranslatef(405.0f, 104.0f, -1.0f);
 	glColor3f(1.0, 0.0, 0.0);   //choosing red color
 	
 	glBegin(GL_QUADS);
 		glVertex3f(0.0f, 0.0f, 0.0f);   
 		glVertex3f(50.00f, 0.0f, 0.0f);
-		glVertex3f(50.00f, 25.00f, 0.0f);
-		glVertex3f(0.0f, 25.00f, 0.0f);
+		glVertex3f(50.00f, 21.00f, 0.0f);
+		glVertex3f(0.0f, 21.00f, 0.0f);
 		
 	glEnd();
 
-	/*
+	
 	glLoadIdentity();
-	glRotatef(45.0f, 0.0f, 0.0f, 1.0f);
-
+	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
+	glTranslatef(390.0f, 130.0f, -1.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);   //choosing green color
+		
 	glBegin(GL_QUADS);
-		glColor3f(0.0, 1.0, 0.0);   //choosing green color
 		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(120.0f, 0.0f, 0.0f);
-		glVertex3f(120.0f, 120.0f, 0.0f);
-		glVertex3f(0.0f, 120.0f, 0.0f);
+		glVertex3f(80.0f, 0.0f, 0.0f);
+		glVertex3f(80.0f, 18.0f, 0.0f);
+		glVertex3f(0.0f, 18.0f, 0.0f);
 	glEnd();
 	
-	glRotatef(-45.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-500.0f, -500.0f, -1.0f);
-
-	glRotatef(45.0f, 0.0f, 0.0f, 1.0f);
+	glLoadIdentity();
+	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
+	glTranslatef(375.0f, 152.0f, -1.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);   //choosing red color
+		
 	glBegin(GL_QUADS);
-		glColor4b(127.0, 0.0, 0.0, 1.0);   //choosing red color
 		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(50.00f, 0.0f, 0.0f);
-		glVertex3f(50.00f, 50.00f, 0.0f);
-		glVertex3f(0.0f, 50.00f, 0.0f);
-	glEnd();*/
-	//glPopMatrix();
+		glVertex3f(110.00f, 0.0f, 0.0f);
+		glVertex3f(110.00f, 20.00f, 0.0f);
+		glVertex3f(0.0f, 20.00f, 0.0f);
+	glEnd();
+	
 	glutSwapBuffers();
 }
 
