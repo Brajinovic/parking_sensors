@@ -236,7 +236,7 @@ void display() {
 	base_rectangle.angle = 54.0f;
 	base_rectangle.x = 405.0f;
 	base_rectangle.y = 104.0f;
-	// I am using the RGBA color model, hence 4 bit array
+	// using the RGBA color model, hence 4 bit array
 	// R - red
 	// G - green
 	// B - blue
