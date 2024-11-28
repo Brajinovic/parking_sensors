@@ -158,11 +158,17 @@ void loadTexture()
 // function for drawing rectangles based on the rectangle structure
 void draw_rectangle_struct(struct rectangle* rect)
 {
+	// clear previous settings regarding the view matrix
 	glLoadIdentity();
+	// rotate the view matrix for the desired angle
 	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
+	// move the rotated object in the desired place
 	glTranslatef(rect->x, rect->y, -1.0f);
+	// set the color of the rectangle
 	glColor4f(rect->rgba_color[0], rect->rgba_color[1], rect->rgba_color[2], rect->rgba_color[3]);
 
+	// draw the rectangle in the corrdinate system origin 
+	// with the width and height informations located inside the structure rect
 	glBegin(GL_QUADS);
 		glVertex3f(0.0f, 0.0f, 0.0f);   
 		glVertex3f(rect->width, 0.0f, 0.0f);
@@ -178,15 +184,23 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	// in order not to modify the real object
 	struct rectangle* rectangle = base_rectangle;
 
+	// draw the first, base rectangle
 	draw_rectangle_struct(rectangle);
 
+	// calculate the X coordinate for the second rectangle
+	// by using the offset that was above defined
 	rectangle->x = rectangle->x + X_OFFSET;
+	// calculate the Y coordinate for the second rectangle
 	rectangle->y = rectangle->y + Y_OFFSET;
+	// calculate the second rectangle width
 	rectangle->width = rectangle->width + WIDTH_OFFSET;
+	// calculate the second rectangle height
 	rectangle->height = rectangle->height + HEIGHT_OFFSET;
+	// calculate the second rectangle transparency
 	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 	draw_rectangle_struct(rectangle);
 	
+	// this code is similar to the code above, I am calculating new values for the third rectangle
 	rectangle->x = rectangle->x + X_OFFSET;
 	rectangle->y = rectangle->y + Y_OFFSET;
 	rectangle->width = rectangle->width + WIDTH_OFFSET;
@@ -194,52 +208,47 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 	draw_rectangle_struct(rectangle);
 }
-
-void draw_rectangle(float width, float height)
-{
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(width, 0.0f, 0.0f);
-		glVertex3f(width, height, 0.0f);
-		glVertex3f(0.0f, height, 0.0f);	
-	glEnd();
-}
-
-/*
-int draw_rectangle(width, height, x, y, angle, color(rgba))
-
-*/
 
 
 
 void display() {
+// debug printing
 #if DEBUG == 1
 	printf("\nDisplay\n");
 #endif
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
-	// draw the canvas over the given area
 	
+	// create a rectangle and apply a texture on it
+	// the texture is the car image we are seeing in the window
 	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
+	// create the base rectangle structure and fill it with data
 	struct rectangle base_rectangle;
 	base_rectangle.width = 45.0f;
 	base_rectangle.height = 17.0f;
 	base_rectangle.angle = 54.0f;
 	base_rectangle.x = 405.0f;
 	base_rectangle.y = 104.0f;
+	// I am using the RGBA color model, hence 4 bit array
+	// R - red
+	// G - green
+	// B - blue
+	// A - alpha (transparency)
 	base_rectangle.rgba_color[0] = 1.0f;
 	base_rectangle.rgba_color[1] = 0.0f;
 	base_rectangle.rgba_color[2] = 0.0f;
 	base_rectangle.rgba_color[3] = 1.0f;
 
+	// call the function for drawing the 3 rectangles/parking sensors
 	draw_parking_sensors(&base_rectangle);
-	
+	// apply the drawings to the window
 	glutSwapBuffers();
 }
 
