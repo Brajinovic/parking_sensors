@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
+
 #define SUCCESS 1
 #define FAIL 0
 
@@ -31,6 +32,8 @@ struct rectangle{
 	float angle;
 	float rgba_color[4];
 };
+
+struct rectangle* base_rectangle = NULL;
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -180,7 +183,7 @@ void draw_rectangle_struct(struct rectangle* rect)
 }
 
 // function for drawing the 3 "parking sensors"
-void draw_parking_sensors(struct rectangle* base_rectangle)
+void draw_parking_sensors()
 {
 	printf("\n FUCKING WORK\n");
 	// create a local copy of the base rectangle
@@ -252,37 +255,42 @@ void display() {
 void button_pressed(unsigned char key, int x, int y)
 {
 	// create the base rectangle structure and fill it with data
-	struct rectangle base_rectangle;
-	base_rectangle.width = 45.0f;
-	base_rectangle.height = 17.0f;
-	base_rectangle.angle = 54.0f;
-	base_rectangle.x = 405.0f;
-	base_rectangle.y = 104.0f;
+	base_rectangle->width = 45.0f;
+	base_rectangle->height = 17.0f;
+	base_rectangle->angle = 54.0f;
+	base_rectangle->x = 405.0f;
+	base_rectangle->y = 104.0f;
 	// using the RGBA color model, hence 4 bit array
 	// R - red
 	// G - green
 	// B - blue
 	// A - alpha (transparency)
-	base_rectangle.rgba_color[0] = 1.0f;
-	base_rectangle.rgba_color[1] = 0.0f;
-	base_rectangle.rgba_color[2] = 0.0f;
-	base_rectangle.rgba_color[3] = 1.0f;
+	base_rectangle->rgba_color[0] = 1.0f;
+	base_rectangle->rgba_color[1] = 0.0f;
+	base_rectangle->rgba_color[2] = 0.0f;
+	base_rectangle->rgba_color[3] = 1.0f;
+
 
 	switch(key){
 		case 'q':
-			base_rectangle.order = 1;
+			base_rectangle->order = 1;
+			printf("\a");
+			printf("\a");
+			printf("\a");
 			break;
 		case 'w':
-			base_rectangle.order = 2;
+			base_rectangle->order = 2;
+			printf("\a");
+			printf("\a");
 			break;
 		case 'e':
-			base_rectangle.order = 3;
+			printf("\a");
+			base_rectangle->order = 3;
 			break;
 		case 'r':
-			base_rectangle.order = 4;
+			base_rectangle->order = 4;
 			break;
 	}
-	printf("\n Order: %d\n", base_rectangle.order);
 	// call the function for drawing the 3 rectangles/parking sensors
 	draw_parking_sensors(&base_rectangle);
 
@@ -292,10 +300,34 @@ void button_pressed(unsigned char key, int x, int y)
 void idle()
 {
 	// here comes the code which will be executed when program state is idle
-
+	if (base_rectangle->order == 3){
+		for (int i = 0; i < 255; i++)
+		{
+			printf("\a");
+		}
+	} else if (base_rectangle->order == 2)
+	{
+		for (int i = 0; i < 2550990; i++)
+		{
+			if (i % 50000 == 0)
+			{
+				printf("\a");
+			}
+		}
+	} else if (base_rectangle->order == 1)
+	{
+		for (int i = 0; i < 2550099; i++)
+		{
+			if (i % 150099 == 0)
+			{
+				printf("\a");
+			}
+		}
+	}
 }
 
 int main(int argc, char** argv) {
+	base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
