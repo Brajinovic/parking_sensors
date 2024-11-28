@@ -13,6 +13,7 @@
 #define X_OFFSET -16
 #define Y_OFFSET 21
 #define TRANSPARENCY_OFFSET -30 // percentage
+#define ORDER_OFFSET 1
 
 #define START_COORDINATE_X 0
 #define START_COORDINATE_Y 0
@@ -24,6 +25,7 @@
 struct rectangle{
 	int x;
 	int y;
+	int order;
 	float width;
 	float height;
 	float angle;
@@ -183,30 +185,34 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
 	struct rectangle* rectangle = base_rectangle;
-
-	// draw the first, base rectangle
-	draw_rectangle_struct(rectangle);
-
-	// calculate the X coordinate for the second rectangle
-	// by using the offset that was above defined
-	rectangle->x = rectangle->x + X_OFFSET;
-	// calculate the Y coordinate for the second rectangle
-	rectangle->y = rectangle->y + Y_OFFSET;
-	// calculate the second rectangle width
-	rectangle->width = rectangle->width + WIDTH_OFFSET;
-	// calculate the second rectangle height
-	rectangle->height = rectangle->height + HEIGHT_OFFSET;
-	// calculate the second rectangle transparency
-	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
-	draw_rectangle_struct(rectangle);
-	
-	// this code is similar to the code above, I am calculating new values for the third rectangle
-	rectangle->x = rectangle->x + X_OFFSET;
-	rectangle->y = rectangle->y + Y_OFFSET;
-	rectangle->width = rectangle->width + WIDTH_OFFSET;
-	rectangle->height = rectangle->height + HEIGHT_OFFSET;
-	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
-	draw_rectangle_struct(rectangle);
+	if (rectangle->order >= 1)
+	{
+		// draw the first, base rectangle
+		draw_rectangle_struct(rectangle);
+	} else if (rectangle->order >= 2)
+	{
+		// calculate the X coordinate for the second rectangle
+		// by using the offset that was above defined
+		rectangle->x = rectangle->x + X_OFFSET;
+		// calculate the Y coordinate for the second rectangle
+		rectangle->y = rectangle->y + Y_OFFSET;
+		// calculate the second rectangle width
+		rectangle->width = rectangle->width + WIDTH_OFFSET;
+		// calculate the second rectangle height
+		rectangle->height = rectangle->height + HEIGHT_OFFSET;
+		// calculate the second rectangle transparency
+		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+		draw_rectangle_struct(rectangle);
+	} else if (rectangle->order >= 3)
+	{
+		// this code is similar to the code above, I am calculating new values for the third rectangle
+		rectangle->x = rectangle->x + X_OFFSET;
+		rectangle->y = rectangle->y + Y_OFFSET;
+		rectangle->width = rectangle->width + WIDTH_OFFSET;
+		rectangle->height = rectangle->height + HEIGHT_OFFSET;
+		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+		draw_rectangle_struct(rectangle);
+	}
 }
 
 
@@ -229,6 +235,11 @@ void display() {
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
+	// apply the drawings to the window
+}
+
+void button_pressed(unsigned char key, int x, int y)
+{
 	// create the base rectangle structure and fill it with data
 	struct rectangle base_rectangle;
 	base_rectangle.width = 45.0f;
@@ -246,10 +257,25 @@ void display() {
 	base_rectangle.rgba_color[2] = 0.0f;
 	base_rectangle.rgba_color[3] = 1.0f;
 
+	switch(key){
+		case 'q':
+			base_rectangle.order = 1;
+
+		case 'w':
+			base_rectangle.order = 2;
+
+		case 'e':
+			base_rectangle.order = 3;
+
+		case 'r':
+			base_rectangle.order = 0;
+
+	}
+
 	// call the function for drawing the 3 rectangles/parking sensors
 	draw_parking_sensors(&base_rectangle);
-	// apply the drawings to the window
 	glutSwapBuffers();
+
 }
 
 
