@@ -182,14 +182,18 @@ void draw_rectangle_struct(struct rectangle* rect)
 // function for drawing the 3 "parking sensors"
 void draw_parking_sensors(struct rectangle* base_rectangle)
 {
+	printf("\n FUCKING WORK\n");
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
+	glLoadIdentity();
+	display();
 	struct rectangle* rectangle = base_rectangle;
-	if (rectangle->order >= 1)
+	if (rectangle->order <= 3)
 	{
 		// draw the first, base rectangle
 		draw_rectangle_struct(rectangle);
-	} else if (rectangle->order >= 2)
+	} 
+	if (rectangle->order <= 2)
 	{
 		// calculate the X coordinate for the second rectangle
 		// by using the offset that was above defined
@@ -203,7 +207,8 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 		// calculate the second rectangle transparency
 		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 		draw_rectangle_struct(rectangle);
-	} else if (rectangle->order >= 3)
+	}
+	if (rectangle->order <= 1)
 	{
 		// this code is similar to the code above, I am calculating new values for the third rectangle
 		rectangle->x = rectangle->x + X_OFFSET;
@@ -213,6 +218,10 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 		draw_rectangle_struct(rectangle);
 	}
+	
+	printf("\n swapout buffers\n");
+	
+	glutSwapBuffers();
 }
 
 
@@ -236,6 +245,8 @@ void display() {
 	glEnd();
 	
 	// apply the drawings to the window
+	glutSwapBuffers();
+
 }
 
 void button_pressed(unsigned char key, int x, int y)
@@ -260,21 +271,20 @@ void button_pressed(unsigned char key, int x, int y)
 	switch(key){
 		case 'q':
 			base_rectangle.order = 1;
-
+			break;
 		case 'w':
 			base_rectangle.order = 2;
-
+			break;
 		case 'e':
 			base_rectangle.order = 3;
-
+			break;
 		case 'r':
-			base_rectangle.order = 0;
-
+			base_rectangle.order = 4;
+			break;
 	}
-
+	printf("\n Order: %d\n", base_rectangle.order);
 	// call the function for drawing the 3 rectangles/parking sensors
 	draw_parking_sensors(&base_rectangle);
-	glutSwapBuffers();
 
 }
 
@@ -306,6 +316,8 @@ int main(int argc, char** argv) {
 	glutReshapeFunc(reshape);
 	// function called when nothing else is executing and CPU is free
 	glutIdleFunc(idle);
+	// enable user input
+	glutKeyboardFunc(button_pressed);
 	initGL();
 	loadTexture();   //enable this to load image
 	
