@@ -3,10 +3,32 @@
 #include <string.h>
 #include <errno.h>
 
+#define SUCCESS 1
+#define FAIL 0
 
 #define DEBUG 0
+
+#define WIDTH_OFFSET 38
+#define HEIGHT_OFFSET -1
+#define X_OFFSET -16
+#define Y_OFFSET 21
+#define TRANSPARENCY_OFFSET -30 // percentage
+
+#define START_COORDINATE_X 0
+#define START_COORDINATE_Y 0
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
+#define MIN_HEIGHT -4
+#define MAX_HEIGHT 2
+
+struct rectangle{
+	int x;
+	int y;
+	float width;
+	float height;
+	float angle;
+	float rgba_color[4];
+};
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -85,16 +107,16 @@ void reshape(int width, int height)
 #if DEBUG == 1
 	printf("\nreshape callback\n");
 #endif
-	// specify the desired rectangle
-	// the first two numbers are the coordinates of the top left corner
+	// specify the top left corner coordinates
+	// specify the new rectangle width and height
 	glViewport(0, 0, width, height);
 	// switch to matrix projection
 	glMatrixMode(GL_PROJECTION);
 	// clean projection matrix
 	glLoadIdentity();
-	// set camera view (orthographic projection with 4x4 unit square canvas)
-
-	glOrtho(0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 2, -4);
+	// set camera view
+	// set the coordinate system in the range [0, WINDOW_WIDTH], [0, WINDOW_HEIGHT]
+	glOrtho(START_COORDINATE_X, WINDOW_WIDTH, WINDOW_HEIGHT, START_COORDINATE_X, MAX_HEIGHT, MIN_HEIGHT);
 	// swith back to matrix
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -127,12 +149,67 @@ void loadTexture()
 							   // generating a texture to show the image
 	glGenTextures(1, &texture[0]);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	// printf("width: %d\n height: %d\n", twidth, theight);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 }
+
+// function for drawing rectangles based on the rectangle structure
+void draw_rectangle_struct(struct rectangle* rect)
+{
+	glLoadIdentity();
+	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
+	glTranslatef(rect->x, rect->y, -1.0f);
+	glColor4f(rect->rgba_color[0], rect->rgba_color[1], rect->rgba_color[2], rect->rgba_color[3]);
+
+	glBegin(GL_QUADS);
+		glVertex3f(0.0f, 0.0f, 0.0f);   
+		glVertex3f(rect->width, 0.0f, 0.0f);
+		glVertex3f(rect->width, rect->height, 0.0f);
+		glVertex3f(0.0f, rect->height, 0.0f);	
+	glEnd();
+}
+
+// function for drawing the 3 "parking sensors"
+void draw_parking_sensors(struct rectangle* base_rectangle)
+{
+	// create a local copy of the base rectangle
+	// in order not to modify the real object
+	struct rectangle* rectangle = base_rectangle;
+
+	draw_rectangle_struct(rectangle);
+
+	rectangle->x = rectangle->x + X_OFFSET;
+	rectangle->y = rectangle->y + Y_OFFSET;
+	rectangle->width = rectangle->width + WIDTH_OFFSET;
+	rectangle->height = rectangle->height + HEIGHT_OFFSET;
+	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+	draw_rectangle_struct(rectangle);
+	
+	rectangle->x = rectangle->x + X_OFFSET;
+	rectangle->y = rectangle->y + Y_OFFSET;
+	rectangle->width = rectangle->width + WIDTH_OFFSET;
+	rectangle->height = rectangle->height + HEIGHT_OFFSET;
+	rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+	draw_rectangle_struct(rectangle);
+}
+
+void draw_rectangle(float width, float height)
+{
+	glBegin(GL_QUADS);
+		glVertex3f(0.0f, 0.0f, 0.0f);   
+		glVertex3f(width, 0.0f, 0.0f);
+		glVertex3f(width, height, 0.0f);
+		glVertex3f(0.0f, height, 0.0f);	
+	glEnd();
+}
+
+/*
+int draw_rectangle(width, height, x, y, angle, color(rgba))
+
+*/
+
 
 
 void display() {
@@ -140,7 +217,6 @@ void display() {
 	printf("\nDisplay\n");
 #endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//glBindTexture(GL_TEXTURE_2D, texName);
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
 	// draw the canvas over the given area
@@ -151,42 +227,18 @@ void display() {
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(405.0f, 104.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);   //choosing red color
-	
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(45.00f, 0.0f, 0.0f);
-		glVertex3f(45.00f, 17.00f, 0.0f);
-		glVertex3f(0.0f, 17.00f, 0.0f);
-		
-	glEnd();
+	struct rectangle base_rectangle;
+	base_rectangle.width = 45.0f;
+	base_rectangle.height = 17.0f;
+	base_rectangle.angle = 54.0f;
+	base_rectangle.x = 405.0f;
+	base_rectangle.y = 104.0f;
+	base_rectangle.rgba_color[0] = 1.0f;
+	base_rectangle.rgba_color[1] = 0.0f;
+	base_rectangle.rgba_color[2] = 0.0f;
+	base_rectangle.rgba_color[3] = 1.0f;
 
-	
-	glLoadIdentity();
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(390.0f, 125.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.65f);   //choosing green color
-		
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(80.0f, 0.0f, 0.0f);
-		glVertex3f(80.0f, 18.0f, 0.0f);
-		glVertex3f(0.0f, 18.0f, 0.0f);
-	glEnd();
-	
-	glLoadIdentity();
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(375.0f, 147.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.5f);   //choosing red color
-		
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(110.00f, 0.0f, 0.0f);
-		glVertex3f(110.00f, 20.00f, 0.0f);
-		glVertex3f(0.0f, 20.00f, 0.0f);
-	glEnd();
+	draw_parking_sensors(&base_rectangle);
 	
 	glutSwapBuffers();
 }
