@@ -199,7 +199,10 @@ void draw_parking_sensors()
 	{
 		// draw the first, base rectangle
 		draw_rectangle_struct(rectangle);
-	} 
+	} else
+	{
+		
+	}
 	if (rectangle->order <= 2)
 	{
 		// calculate the X coordinate for the second rectangle
@@ -214,6 +217,9 @@ void draw_parking_sensors()
 		// calculate the second rectangle transparency
 		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 		draw_rectangle_struct(rectangle);
+	} else
+	{
+
 	}
 	if (rectangle->order <= 1)
 	{
@@ -224,6 +230,9 @@ void draw_parking_sensors()
 		rectangle->height = rectangle->height + HEIGHT_OFFSET;
 		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
 		draw_rectangle_struct(rectangle);
+	} else
+	{
+
 	}
 	
 	printf("\n swapout buffers\n");
@@ -308,10 +317,7 @@ void idle()
 	int factor = 0;
 
 	// get current time
-	if (gettimeofday(&time, NULL) == -1)
-	{
-		return FAIL;
-	}
+	gettimeofday(&time, NULL);
 
 	// get the microsecond part of the time and divide it by 1000 to get miliseconds
 	current_time = time.tv_usec / 1000;
@@ -337,6 +343,9 @@ void idle()
 		{
 			printf("\a");
 			previous_time = current_time;
+		} else 
+		{
+
 		}
 	} else if (base_rectangle->order == 2)
 	{
@@ -344,6 +353,9 @@ void idle()
 		{
 			printf("\a");
 			previous_time = current_time;
+		} else
+		{
+
 		}
 	} else if (base_rectangle->order == 1)
 	{
