@@ -1,13 +1,13 @@
-#include <stdio.h>
+#include <stdio.h> // nešto drugo
 #include <GL/glut.h>
 #include <string.h>
 #include <errno.h>
-
+#include <sys/time.h>
 
 #define SUCCESS 1
 #define FAIL 0
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define WIDTH_OFFSET 38
 #define HEIGHT_OFFSET -1
@@ -23,6 +23,10 @@
 #define MIN_HEIGHT -4
 #define MAX_HEIGHT 2
 
+#define TONE_ONE_DURATION 50
+#define TONE_TWO_DURATION 250
+#define TONE_THREE_DURATION 500
+
 struct rectangle{
 	int x;
 	int y;
@@ -32,6 +36,7 @@ struct rectangle{
 	float angle;
 	float rgba_color[4];
 };
+
 
 struct rectangle* base_rectangle = NULL;
 
@@ -114,7 +119,7 @@ void reshape(int width, int height)
 #endif
 	// specify the top left corner coordinates
 	// specify the new rectangle width and height
-	glViewport(0, 0, width, height);
+	glViewport(START_COORDINATE_X, START_COORDINATE_Y, width, height);
 	// switch to matrix projection
 	glMatrixMode(GL_PROJECTION);
 	// clean projection matrix
@@ -133,10 +138,10 @@ void draw_canvas(int width, int height)
 	// pick the color (white in this case)
 	glColor3f(1.0, 1.0, 1.0);
 	// draw the canvas over the given area
-	glTexCoord2f(0, WINDOW_HEIGHT); glVertex3f(0, 0, 0);
+	glTexCoord2f(START_COORDINATE_X, WINDOW_HEIGHT); glVertex3f(0, 0, 0);
 	glTexCoord2f(WINDOW_WIDTH, WINDOW_HEIGHT); glVertex3f(width, 0, 0);
-	glTexCoord2f(WINDOW_WIDTH, 0); glVertex3f(width, height, 0);
-	glTexCoord2f(0, 0); glVertex3f(0, height, 0);
+	glTexCoord2f(WINDOW_WIDTH, START_COORDINATE_Y); glVertex3f(width, height, 0);
+	glTexCoord2f(START_COORDINATE_X, START_COORDINATE_Y); glVertex3f(0, height, 0);
 }
 
 
@@ -185,7 +190,6 @@ void draw_rectangle_struct(struct rectangle* rect)
 // function for drawing the 3 "parking sensors"
 void draw_parking_sensors()
 {
-	printf("\n FUCKING WORK\n");
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
 	glLoadIdentity();
@@ -239,8 +243,9 @@ void display() {
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
 	
-	// create a rectangle and apply a texture on it
-	// the texture is the car image we are seeing in the window
+	// this is a specific way to load the image
+	// in here we are loading the image as a texture, drawing a rectangle and then 
+	// we apply this texture to the rectangle
 	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
@@ -274,24 +279,22 @@ void button_pressed(unsigned char key, int x, int y)
 	switch(key){
 		case 'q':
 			base_rectangle->order = 1;
-			printf("\a");
-			printf("\a");
-			printf("\a");
 			break;
 		case 'w':
 			base_rectangle->order = 2;
-			printf("\a");
-			printf("\a");
 			break;
 		case 'e':
-			printf("\a");
 			base_rectangle->order = 3;
 			break;
 		case 'r':
 			base_rectangle->order = 4;
 			break;
+		default:
+			base_rectangle->order = 5;
+			break;
 	}
-	// call the function for drawing the 3 rectangles/parking sensors
+	// call the function for drawing the 3 rectangles representing the distances
+	// in the parking sensors
 	draw_parking_sensors(&base_rectangle);
 
 }
@@ -299,32 +302,65 @@ void button_pressed(unsigned char key, int x, int y)
 
 void idle()
 {
-	// here comes the code which will be executed when program state is idle
+	static struct timeval time;
+	static int current_time = 0;
+	static int previous_time = 0;
+	int factor = 0;
+
+	// get current time
+	if (gettimeofday(&time, NULL) == -1)
+	{
+		return FAIL;
+	}
+
+	// get the microsecond part of the time and divide it by 1000 to get miliseconds
+	current_time = time.tv_usec / 1000;
+
+#if DEBUG == 1
+	// printf("\n%d\n", current_time);
+#endif
+
+	// calculate how mutch time has passed since the last time this function was called
+	factor = current_time - previous_time;
+	// given that the result can be negative, you need to check if it is negative and turn it to positive
+	factor = factor > 0 ? factor : factor * -1;
+
+#if DEBUG == 1
+	// printf("\n%d\n", base_rectangle->order);
+#endif
+	printf(" ");
+	// with the help of struct rectangle member order, determine which tone is playing
+	// i.e. what should be the period of the audio sound
 	if (base_rectangle->order == 3){
-		for (int i = 0; i < 255; i++)
+		
+		if (factor > TONE_ONE_DURATION) // play a sound every 100 ms
 		{
 			printf("\a");
+			previous_time = current_time;
 		}
 	} else if (base_rectangle->order == 2)
 	{
-		for (int i = 0; i < 2550990; i++)
+		if (factor > TONE_TWO_DURATION) // play a sound every 300 ms
 		{
-			if (i % 50000 == 0)
-			{
-				printf("\a");
-			}
+			printf("\a");
+			previous_time = current_time;
 		}
 	} else if (base_rectangle->order == 1)
 	{
-		for (int i = 0; i < 2550099; i++)
+		if (factor > TONE_THREE_DURATION) // play a sound every 500 ms
 		{
-			if (i % 150099 == 0)
-			{
-				printf("\a");
-			}
+			printf("\a");
+			previous_time = current_time;
+		} else
+		{
+
 		}
+	} else
+	{
+		
 	}
 }
+
 
 int main(int argc, char** argv) {
 	base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
