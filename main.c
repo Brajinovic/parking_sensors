@@ -9,6 +9,8 @@
 #include <X11/keysym.h>
 #include <X11/extensions/XTest.h>
 
+#include "uart_handler.h"
+
 #define SUCCESS 1
 #define FAIL 0
 #define True 1
@@ -322,6 +324,15 @@ Display *display_thing;
 unsigned int keycode;
 // int key_pressed;
 
+// if I want to preserve the manual configuration option (i.e. to still be able to use the keyboard to generate/draw rectangles)
+// I ought to add my UART related code in the idle() function
+
+// uart handler initialisation
+static int clear_display_flag = 0;
+static int fd;
+static int* sensor_values = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
+config_uart(&fd);
+
 void idle()
 {
 	/*
@@ -337,6 +348,32 @@ void idle()
 	}
 
 	*/
+
+	// read the parking sensor values
+	if (get_sensor_data(sensor_values, fd) == 0)
+	{
+		printf("Error when reading from UART!");
+	}
+
+	// now interpret the received values
+	if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
+	{
+		base_rectangle->order = 1;
+		clear_display_flag = 1;
+	} else if (*(sensor_values + 1) < 61)	// if the distance is less than 60 cm, that is state 2
+	{
+		base_rectangle->order = 2;
+		clear_display_flag = 1;
+	} else if (*(sensor_values + 2) < 31)	// if the distance is less than 30 cm, that is state 3
+	{
+		base_rectangle->order = 3;
+		clear_display_flag = 1;
+	} else if (clear_display_flag == 1)
+	{
+		base_rectangle->order = 4;
+
+	}
+
 	static struct timeval time;
 	static int current_time = 0;
 	static int previous_time = 0;
@@ -349,7 +386,7 @@ void idle()
 	current_time = time.tv_usec / 1000;
 
 #if DEBUG == 1
-	// printf("\n%d\n", current_time);
+	printf("\n%d\n", current_time);
 #endif
 
 	// calculate how mutch time has passed since the last time this function was called
@@ -358,7 +395,7 @@ void idle()
 	factor = factor > 0 ? factor : factor * -1;
 
 #if DEBUG == 1
-	// printf("\n%d\n", base_rectangle->order);
+	printf("\n%d\n", base_rectangle->order);
 #endif
 	printf(" ");
 	// with the help of struct rectangle member order, determine which tone is playing
