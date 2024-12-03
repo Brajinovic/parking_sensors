@@ -4,8 +4,15 @@
 #include <errno.h>
 #include <sys/time.h>
 
+
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/extensions/XTest.h>
+
 #define SUCCESS 1
 #define FAIL 0
+#define True 1
+#define False 0
 
 #define DEBUG 1
 
@@ -26,6 +33,9 @@
 #define TONE_ONE_DURATION 50
 #define TONE_TWO_DURATION 250
 #define TONE_THREE_DURATION 500
+
+#define KEY_PRESS_EX 1
+#define USE_PARKING_SENSOR 1
 
 struct rectangle{
 	int x;
@@ -308,9 +318,25 @@ void button_pressed(unsigned char key, int x, int y)
 
 }
 
+Display *display_thing;
+unsigned int keycode;
+// int key_pressed;
 
 void idle()
 {
+	/*
+	if (key_pressed == 0)
+	{
+		display_thing = XOpenDisplay(NULL);
+
+		keycode = XKeysymToKeycode(display_thing, XK_w);
+		XTestFakeKeyEvent(display_thing, keycode, True, 0);
+		XTestFakeKeyEvent(display_thing, keycode, False, 0);
+		XFlush(display_thing);
+		key_pressed = 1;
+	}
+
+	*/
 	static struct timeval time;
 	static int current_time = 0;
 	static int previous_time = 0;
@@ -371,10 +397,20 @@ void idle()
 	{
 		
 	}
+
+#if USE_PARKING_SENSOR == 1
+
+	/*
+	Given the distance from the HC-SR04 parking sensors, press the coresponding button?
+	OR... do it without the buttons... use it directly...
+	*/
+
+#endif
 }
 
 
 int main(int argc, char** argv) {
+	// key_pressed = 1;
 	base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
 	/* 1) INITIALIZATION */
 	// initialize GLUT
