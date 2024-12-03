@@ -280,21 +280,7 @@ void display() {
 
 void button_pressed(unsigned char key, int x, int y)
 {
-	// create the base rectangle structure and fill it with data
-	base_rectangle->width = 45.0f;
-	base_rectangle->height = 17.0f;
-	base_rectangle->angle = 54.0f;
-	base_rectangle->x = 405.0f;
-	base_rectangle->y = 104.0f;
-	// using the RGBA color model, hence 4 bit array
-	// R - red
-	// G - green
-	// B - blue
-	// A - alpha (transparency)
-	base_rectangle->rgba_color[0] = 1.0f;
-	base_rectangle->rgba_color[1] = 0.0f;
-	base_rectangle->rgba_color[2] = 0.0f;
-	base_rectangle->rgba_color[3] = 1.0f;
+	
 
 
 	switch(key){
@@ -348,30 +334,12 @@ void idle()
 	printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
 
 	// now interpret the received values
-	if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
-	{
-		if (base_rectangle->order != 1)
-		{
-			keycode = XKeysymToKeycode(display_thing, XK_q);
-			update_screen = 1;
-		} else
-		{
-
-		}
-	} else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
-	{
-		if (base_rectangle->order != 2)
-		{
-			keycode = XKeysymToKeycode(display_thing, XK_w);
-			update_screen = 1;
-		} else
-		{
-
-		}
-	} else if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
+	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
 	{
 		if (base_rectangle->order != 3)
 		{
+
+			printf("\n< 31\n");
 			keycode = XKeysymToKeycode(display_thing, XK_e);
 			update_screen = 1;
 		} else
@@ -379,11 +347,40 @@ void idle()
 
 		}
 		
+	}else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
+	{
+		if (base_rectangle->order != 2)
+		{
+
+			printf("\n< 61\n");
+			keycode = XKeysymToKeycode(display_thing, XK_w);
+			update_screen = 1;
+		} else
+		{
+
+		}
+	} else if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
+	{
+		// only press the button once, do not do it repeatedly
+		// if the distance is less than 100 cm, press q, but in the
+		// next iteration, if the base_rectangle->order is already 1, it means
+		// that the button was already pressed
+		if (base_rectangle->order != 1)
+		{
+
+			printf("\n< 101\n");
+			keycode = XKeysymToKeycode(display_thing, XK_q);
+			update_screen = 1;
+		} else
+		{
+
+		}
 	} else if (*(sensor_values + 0) > 100)
 	{
 		if (base_rectangle->order != 4)
 		{
-			update_screen = 2;
+			printf("\n > 100\n");
+			update_screen = 1;
 			keycode = XKeysymToKeycode(display_thing, XK_r);
 		} else
 		{
@@ -393,23 +390,16 @@ void idle()
 
 	if (update_screen == 1)
 	{
+
+		printf("\nupdate screen\n");
 		update_screen == 0;
 		XTestFakeKeyEvent(display_thing, keycode, True, 0);
 		XTestFakeKeyEvent(display_thing, keycode, False, 0);
-		XFlush(display_thing);
-	} else if (update_screen == 2)
-	{
-		display();
-		update_screen = 0;
+		XFlush(display_thing); 
 	} else
 	{
 
 	}
-
-
-
-	
-
 	// get current time
 	gettimeofday(&time, NULL);
 
@@ -483,6 +473,23 @@ int main(int argc, char** argv) {
 	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
 	config_uart(&fd);
 	display_thing = XOpenDisplay(NULL);
+
+	// create the base rectangle structure and fill it with data
+	base_rectangle->width = 45.0f;
+	base_rectangle->height = 17.0f;
+	base_rectangle->angle = 54.0f;
+	base_rectangle->x = 405.0f;
+	base_rectangle->y = 104.0f;
+	base_rectangle->order = 4;
+	// using the RGBA color model, hence 4 bit array
+	// R - red
+	// G - green
+	// B - blue
+	// A - alpha (transparency)
+	base_rectangle->rgba_color[0] = 1.0f;
+	base_rectangle->rgba_color[1] = 0.0f;
+	base_rectangle->rgba_color[2] = 0.0f;
+	base_rectangle->rgba_color[3] = 1.0f;
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
