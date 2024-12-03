@@ -104,10 +104,10 @@ int config_uart(int* fd)
 
 	set_interface_attribs (*fd, B9600, 0);  // set speed to 9,600 bps, 8n1 (no parity)
 	set_blocking (*fd, 0);                // set no blocking
-
+	return SUCCESS;
 }
 
-
+/*
 int main(void)
 {
 	int fd;
@@ -152,3 +152,4 @@ int main(void)
 #endif
 	return SUCCESS;
 }
+*/
