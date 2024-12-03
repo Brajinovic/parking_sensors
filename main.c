@@ -328,56 +328,87 @@ unsigned int keycode;
 // I ought to add my UART related code in the idle() function
 
 // uart handler initialisation
-static int clear_display_flag = 0;
+static int update_screen = 0;
 static int fd;
-static int* sensor_values = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
-config_uart(&fd);
-
+static int* sensor_values;
+static struct timeval time;
+static int current_time = 0;
+static int previous_time = 0;
+	
 void idle()
 {
-	/*
-	if (key_pressed == 0)
-	{
-		display_thing = XOpenDisplay(NULL);
-
-		keycode = XKeysymToKeycode(display_thing, XK_w);
-		XTestFakeKeyEvent(display_thing, keycode, True, 0);
-		XTestFakeKeyEvent(display_thing, keycode, False, 0);
-		XFlush(display_thing);
-		key_pressed = 1;
-	}
-
-	*/
-
+	
+	int factor = 0;
 	// read the parking sensor values
 	if (get_sensor_data(sensor_values, fd) == 0)
 	{
 		printf("Error when reading from UART!");
 	}
 
+	printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
+
 	// now interpret the received values
 	if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
 	{
-		base_rectangle->order = 1;
-		clear_display_flag = 1;
-	} else if (*(sensor_values + 1) < 61)	// if the distance is less than 60 cm, that is state 2
+		if (base_rectangle->order != 1)
+		{
+			keycode = XKeysymToKeycode(display_thing, XK_q);
+			update_screen = 1;
+		} else
+		{
+
+		}
+	} else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
 	{
-		base_rectangle->order = 2;
-		clear_display_flag = 1;
-	} else if (*(sensor_values + 2) < 31)	// if the distance is less than 30 cm, that is state 3
+		if (base_rectangle->order != 2)
+		{
+			keycode = XKeysymToKeycode(display_thing, XK_w);
+			update_screen = 1;
+		} else
+		{
+
+		}
+	} else if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
 	{
-		base_rectangle->order = 3;
-		clear_display_flag = 1;
-	} else if (clear_display_flag == 1)
+		if (base_rectangle->order != 3)
+		{
+			keycode = XKeysymToKeycode(display_thing, XK_e);
+			update_screen = 1;
+		} else
+		{
+
+		}
+		
+	} else if (*(sensor_values + 0) > 100)
 	{
-		base_rectangle->order = 4;
+		if (base_rectangle->order != 4)
+		{
+			update_screen = 2;
+			keycode = XKeysymToKeycode(display_thing, XK_r);
+		} else
+		{
+
+		}
+	}
+
+	if (update_screen == 1)
+	{
+		update_screen == 0;
+		XTestFakeKeyEvent(display_thing, keycode, True, 0);
+		XTestFakeKeyEvent(display_thing, keycode, False, 0);
+		XFlush(display_thing);
+	} else if (update_screen == 2)
+	{
+		display();
+		update_screen = 0;
+	} else
+	{
 
 	}
 
-	static struct timeval time;
-	static int current_time = 0;
-	static int previous_time = 0;
-	int factor = 0;
+
+
+	
 
 	// get current time
 	gettimeofday(&time, NULL);
@@ -395,7 +426,7 @@ void idle()
 	factor = factor > 0 ? factor : factor * -1;
 
 #if DEBUG == 1
-	printf("\n%d\n", base_rectangle->order);
+	printf("\nBase rectangle order: %d\n", base_rectangle->order);
 #endif
 	printf(" ");
 	// with the help of struct rectangle member order, determine which tone is playing
@@ -449,6 +480,9 @@ void idle()
 int main(int argc, char** argv) {
 	// key_pressed = 1;
 	base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
+	config_uart(&fd);
+	display_thing = XOpenDisplay(NULL);
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
