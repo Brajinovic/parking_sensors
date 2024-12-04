@@ -1,0 +1,92 @@
+#include "draw.h"
+
+// function for drawing rectangles based on the rectangle structure
+void draw_rectangle_struct(struct rectangle* rect)
+{
+	// clear previous settings regarding the view matrix
+	glLoadIdentity();
+	// rotate the view matrix for the desired angle
+	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
+	// move the rotated object in the desired place
+	glTranslatef(rect->x, rect->y, -1.0f);
+	// set the color of the rectangle
+	glColor4f(rect->rgba_color[0], rect->rgba_color[1], rect->rgba_color[2], rect->rgba_color[3]);
+
+	// draw the rectangle in the corrdinate system origin 
+	// with the width and height informations located inside the structure rect
+	glBegin(GL_QUADS);
+		glVertex3f(0.0f, 0.0f, 0.0f);   
+		glVertex3f(rect->width, 0.0f, 0.0f);
+		glVertex3f(rect->width, rect->height, 0.0f);
+		glVertex3f(0.0f, rect->height, 0.0f);	
+	glEnd();
+	glLoadIdentity();
+}
+
+// function for drawing the 3 "parking sensors"
+void draw_parking_sensors()
+{
+#if DEBUG == 1
+	printf("draw parking sensors\n");
+#endif
+	// create a local copy of the base rectangle
+	// in order not to modify the real object
+	display();
+
+	struct rectangle rectangle = *base_rectangle;
+	if (rectangle.order <= 3)
+	{
+		// draw the first, base rectangle
+#if DEBUG_DRAW == 1
+	printf(" draw first rectangle\n");
+	printf(" x pos: %d\n", base_rectangle->x);
+#endif		
+		draw_rectangle_struct(&rectangle);
+	} else
+	{
+		
+	}
+	if (rectangle.order <= 2)
+	{
+		// calculate the X coordinate for the second rectangle
+		// by using the offset that was above defined
+		rectangle.x = rectangle.x + X_OFFSET;
+		// calculate the Y coordinate for the second rectangle
+		rectangle.y = rectangle.y + Y_OFFSET;
+		// calculate the second rectangle width
+		rectangle.width = rectangle.width + WIDTH_OFFSET;
+		// calculate the second rectangle height
+		rectangle.height = rectangle.height + HEIGHT_OFFSET;
+		// calculate the second rectangle transparency
+		rectangle.rgba_color[3] = rectangle.rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+#if DEBUG_DRAW == 1
+	printf(" draw second rectangle\n");
+	printf(" x pos: %d\n", rectangle.x);
+#endif	
+		draw_rectangle_struct(&rectangle);
+	} else
+	{
+
+	}
+	if (rectangle.order <= 1)
+	{
+		// this code is similar to the code above, I am calculating new values for the third rectangle
+		rectangle.x = rectangle.x + X_OFFSET;
+		rectangle.y = rectangle.y + Y_OFFSET;
+		rectangle.width = rectangle.width + WIDTH_OFFSET;
+		rectangle.height = rectangle.height + HEIGHT_OFFSET;
+		rectangle.rgba_color[3] = rectangle.rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+#if DEBUG_DRAW == 1
+	printf(" draw third rectangle\n");
+	printf(" x pos: %d", rectangle.x);
+#endif			
+		draw_rectangle_struct(&rectangle);
+	} else
+	{
+
+	}
+	
+	printf("\n swapout buffers\n");
+	
+	glutSwapBuffers();
+}

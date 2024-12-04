@@ -1,29 +1,18 @@
-#include <stdio.h> // nešto drugo
-#include <GL/glut.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
-
-
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/extensions/XTest.h>
+#include "idle.h"
 
 #include "uart_handler.h"
+#include "draw.h"
 
 #define SUCCESS 1
 #define FAIL 0
 #define True 1
 #define False 0
 
-#define DEBUG 1
-
-#define WIDTH_OFFSET 38
-#define HEIGHT_OFFSET -1
-#define X_OFFSET -16
-#define Y_OFFSET 21
-#define TRANSPARENCY_OFFSET -30 // percentage
-#define ORDER_OFFSET 1
+#define DEBUG 0
+#define DEBUG_DRAW 0
+#define DEBUG_IDLE 0
 
 #define START_COORDINATE_X 0
 #define START_COORDINATE_Y 0
@@ -32,25 +21,14 @@
 #define MIN_HEIGHT -4
 #define MAX_HEIGHT 2
 
-#define TONE_ONE_DURATION 50
-#define TONE_TWO_DURATION 250
-#define TONE_THREE_DURATION 500
-
-#define KEY_PRESS_EX 1
-#define USE_PARKING_SENSOR 1
-
-struct rectangle{
-	int x;
-	int y;
-	int order;
-	float width;
-	float height;
-	float angle;
-	float rgba_color[4];
-};
-
-
 struct rectangle* base_rectangle = NULL;
+
+int* sensor_values;
+
+// uart handler initialisation
+Display *display_thing;
+unsigned int keycode;
+int fd;
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -162,6 +140,7 @@ void loadTexture()
 #if DEBUG == 1
 	printf("\nloadTexture\n");
 #endif
+
 	GLuint texture[1]; // declaring space for one texture
 	int twidth, theight; // declaring variable for width and height of an image
 	unsigned char* tdata; // declaring pixel data
@@ -177,89 +156,14 @@ void loadTexture()
 
 }
 
-// function for drawing rectangles based on the rectangle structure
-void draw_rectangle_struct(struct rectangle* rect)
-{
-	// clear previous settings regarding the view matrix
-	glLoadIdentity();
-	// rotate the view matrix for the desired angle
-	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
-	// move the rotated object in the desired place
-	glTranslatef(rect->x, rect->y, -1.0f);
-	// set the color of the rectangle
-	glColor4f(rect->rgba_color[0], rect->rgba_color[1], rect->rgba_color[2], rect->rgba_color[3]);
-
-	// draw the rectangle in the corrdinate system origin 
-	// with the width and height informations located inside the structure rect
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(rect->width, 0.0f, 0.0f);
-		glVertex3f(rect->width, rect->height, 0.0f);
-		glVertex3f(0.0f, rect->height, 0.0f);	
-	glEnd();
-}
-
-// function for drawing the 3 "parking sensors"
-void draw_parking_sensors()
-{
-	// create a local copy of the base rectangle
-	// in order not to modify the real object
-	glLoadIdentity();
-	display();
-	struct rectangle* rectangle = base_rectangle;
-	if (rectangle->order <= 3)
-	{
-		// draw the first, base rectangle
-		draw_rectangle_struct(rectangle);
-	} else
-	{
-		
-	}
-	if (rectangle->order <= 2)
-	{
-		// calculate the X coordinate for the second rectangle
-		// by using the offset that was above defined
-		rectangle->x = rectangle->x + X_OFFSET;
-		// calculate the Y coordinate for the second rectangle
-		rectangle->y = rectangle->y + Y_OFFSET;
-		// calculate the second rectangle width
-		rectangle->width = rectangle->width + WIDTH_OFFSET;
-		// calculate the second rectangle height
-		rectangle->height = rectangle->height + HEIGHT_OFFSET;
-		// calculate the second rectangle transparency
-		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
-		draw_rectangle_struct(rectangle);
-	} else
-	{
-
-	}
-	if (rectangle->order <= 1)
-	{
-		// this code is similar to the code above, I am calculating new values for the third rectangle
-		rectangle->x = rectangle->x + X_OFFSET;
-		rectangle->y = rectangle->y + Y_OFFSET;
-		rectangle->width = rectangle->width + WIDTH_OFFSET;
-		rectangle->height = rectangle->height + HEIGHT_OFFSET;
-		rectangle->rgba_color[3] = rectangle->rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
-		draw_rectangle_struct(rectangle);
-	} else
-	{
-
-	}
-	
-	printf("\n swapout buffers\n");
-	
-	glutSwapBuffers();
-}
-
-
 
 void display() {
 // debug printing
-#if DEBUG == 1
+#if DEBUG_DRAW == 1
 	printf("\nDisplay\n");
 #endif
 
+	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
@@ -280,9 +184,6 @@ void display() {
 
 void button_pressed(unsigned char key, int x, int y)
 {
-	
-
-
 	switch(key){
 		case 'q':
 			base_rectangle->order = 1;
@@ -302,168 +203,10 @@ void button_pressed(unsigned char key, int x, int y)
 	}
 	// call the function for drawing the 3 rectangles representing the distances
 	// in the parking sensors
-	draw_parking_sensors(&base_rectangle);
-
-}
-
-Display *display_thing;
-unsigned int keycode;
-// int key_pressed;
-
-// if I want to preserve the manual configuration option (i.e. to still be able to use the keyboard to generate/draw rectangles)
-// I ought to add my UART related code in the idle() function
-
-// uart handler initialisation
-static int update_screen = 0;
-static int fd;
-static int* sensor_values;
-static struct timeval time;
-static int current_time = 0;
-static int previous_time = 0;
-	
-void idle()
-{
-	
-	int factor = 0;
-	// read the parking sensor values
-	if (get_sensor_data(sensor_values, fd) == 0)
-	{
-		printf("Error when reading from UART!");
-	}
-
-	printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
-
-	// now interpret the received values
-	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
-	{
-		if (base_rectangle->order != 3)
-		{
-
-			printf("\n< 31\n");
-			keycode = XKeysymToKeycode(display_thing, XK_e);
-			update_screen = 1;
-		} else
-		{
-
-		}
-		
-	}else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
-	{
-		if (base_rectangle->order != 2)
-		{
-
-			printf("\n< 61\n");
-			keycode = XKeysymToKeycode(display_thing, XK_w);
-			update_screen = 1;
-		} else
-		{
-
-		}
-	} else if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
-	{
-		// only press the button once, do not do it repeatedly
-		// if the distance is less than 100 cm, press q, but in the
-		// next iteration, if the base_rectangle->order is already 1, it means
-		// that the button was already pressed
-		if (base_rectangle->order != 1)
-		{
-
-			printf("\n< 101\n");
-			keycode = XKeysymToKeycode(display_thing, XK_q);
-			update_screen = 1;
-		} else
-		{
-
-		}
-	} else if (*(sensor_values + 0) > 100)
-	{
-		if (base_rectangle->order != 4)
-		{
-			printf("\n > 100\n");
-			update_screen = 1;
-			keycode = XKeysymToKeycode(display_thing, XK_r);
-		} else
-		{
-
-		}
-	}
-
-	if (update_screen == 1)
-	{
-
-		printf("\nupdate screen\n");
-		update_screen == 0;
-		XTestFakeKeyEvent(display_thing, keycode, True, 0);
-		XTestFakeKeyEvent(display_thing, keycode, False, 0);
-		XFlush(display_thing); 
-	} else
-	{
-
-	}
-	// get current time
-	gettimeofday(&time, NULL);
-
-	// get the microsecond part of the time and divide it by 1000 to get miliseconds
-	current_time = time.tv_usec / 1000;
-
-#if DEBUG == 1
-	printf("\n%d\n", current_time);
+#if DEBUG_DRAW == 1
+	printf("call draw_parking_sensors \n");
 #endif
-
-	// calculate how mutch time has passed since the last time this function was called
-	factor = current_time - previous_time;
-	// given that the result can be negative, you need to check if it is negative and turn it to positive
-	factor = factor > 0 ? factor : factor * -1;
-
-#if DEBUG == 1
-	printf("\nBase rectangle order: %d\n", base_rectangle->order);
-#endif
-	printf(" ");
-	// with the help of struct rectangle member order, determine which tone is playing
-	// i.e. what should be the period of the audio sound
-	if (base_rectangle->order == 3){
-		
-		if (factor > TONE_ONE_DURATION) // play a sound every 100 ms
-		{
-			printf("\a");
-			previous_time = current_time;
-		} else 
-		{
-
-		}
-	} else if (base_rectangle->order == 2)
-	{
-		if (factor > TONE_TWO_DURATION) // play a sound every 300 ms
-		{
-			printf("\a");
-			previous_time = current_time;
-		} else
-		{
-
-		}
-	} else if (base_rectangle->order == 1)
-	{
-		if (factor > TONE_THREE_DURATION) // play a sound every 500 ms
-		{
-			printf("\a");
-			previous_time = current_time;
-		} else
-		{
-
-		}
-	} else
-	{
-		
-	}
-
-#if USE_PARKING_SENSOR == 1
-
-	/*
-	Given the distance from the HC-SR04 parking sensors, press the coresponding button?
-	OR... do it without the buttons... use it directly...
-	*/
-
-#endif
+	draw_parking_sensors();
 }
 
 
@@ -480,7 +223,7 @@ int main(int argc, char** argv) {
 	base_rectangle->angle = 54.0f;
 	base_rectangle->x = 405.0f;
 	base_rectangle->y = 104.0f;
-	base_rectangle->order = 4;
+	base_rectangle->order = 0;
 	// using the RGBA color model, hence 4 bit array
 	// R - red
 	// G - green

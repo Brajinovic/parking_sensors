@@ -1,4 +1,4 @@
-SRCS = main.c uart_handler.c
+SRCS =  main.c uart_handler.c draw.c idle.c
 CFLAGS = -lglut -lGL -lX11 -lXtst
 compile:
 	gcc $(SRCS) -o main.out $(CFLAGS)
