@@ -1,14 +1,5 @@
 #include "idle.h"
 
-// located in main.c
-extern int* sensor_values;
-extern Display *display_thing;
-extern unsigned int keycode;
-
-// timer variables
-static struct timeval time;
-static int current_time = 0;
-static int previous_time = 0;
 
 void press_key(int key)
 {
@@ -19,17 +10,11 @@ void press_key(int key)
 }
 
 
-void idle()
+void check_distance(struct rectangle* base_rectangle)
 {
-#if USE_PARKING_SENSOR == 1
-	// read the parking sensor values
-	if (get_sensor_data(sensor_values, fd) == 0)
-	{
-		printf("Error when reading from UART!");
-	}
-
+#if DEBUG_IDLE == 1
 	printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
-
+#endif
 	// now interpret the received values
 	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
 	{
@@ -80,10 +65,13 @@ void idle()
 
 		}
 	}
-#endif
 #if USE_AUDIO == 1
+	
 	int factor = 0;
-	// get current time
+	struct timeval time;
+	int current_time = 0;
+	static int previous_time = 0;
+	
 	gettimeofday(&time, NULL);
 
 	// get the microsecond part of the time and divide it by 1000 to get miliseconds
@@ -137,5 +125,19 @@ void idle()
 	} else
 	{	
 	}
+#endif
+}
+
+
+void idle()
+{
+#if USE_PARKING_SENSOR == 1
+`	// read the parking sensor values
+	if (get_sensor_data(sensor_values, fd) == 0)
+	{
+		printf("Error when reading from UART!");
+	}
+	check_distance(FL_base_rectangle);
+
 #endif
 }

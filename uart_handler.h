@@ -20,7 +20,7 @@
 
 #define KEY_SIM 0
 
-#define UART_DEBUG 1
+#define UART_DEBUG 0
 
 // generic UART 
 int set_interface_attribs (int fd, int speed, int parity);

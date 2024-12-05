@@ -24,14 +24,14 @@ void draw_rectangle_struct(struct rectangle* rect)
 }
 
 // function for drawing the 3 "parking sensors"
-void draw_parking_sensors()
+void draw_parking_sensors(struct rectangle* base_rectangle)
 {
 #if DEBUG == 1
 	printf("draw parking sensors\n");
 #endif
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
-	display();
+
 
 	struct rectangle rectangle = *base_rectangle;
 	if (rectangle.order <= 3)
@@ -59,10 +59,12 @@ void draw_parking_sensors()
 		rectangle.height = rectangle.height + HEIGHT_OFFSET;
 		// calculate the second rectangle transparency
 		rectangle.rgba_color[3] = rectangle.rgba_color[3] + (TRANSPARENCY_OFFSET / 100.0f);
+
 #if DEBUG_DRAW == 1
 	printf(" draw second rectangle\n");
 	printf(" x pos: %d\n", rectangle.x);
 #endif	
+
 		draw_rectangle_struct(&rectangle);
 	} else
 	{
@@ -85,8 +87,13 @@ void draw_parking_sensors()
 	{
 
 	}
+}
+
+void draw_all_parking_sensors()
+{
+	display();
 	
-	printf("\n swapout buffers\n");
-	
+	draw_parking_sensors(FR_base_rectangle);
+	draw_parking_sensors(FL_base_rectangle);
 	glutSwapBuffers();
 }

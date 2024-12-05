@@ -11,7 +11,6 @@
 #define False 0
 
 #define DEBUG 0
-#define DEBUG_DRAW 0
 #define DEBUG_IDLE 0
 
 #define START_COORDINATE_X 0
@@ -21,7 +20,14 @@
 #define MIN_HEIGHT -4
 #define MAX_HEIGHT 2
 
-struct rectangle* base_rectangle = NULL;
+// front left base rectangle
+struct rectangle* FL_base_rectangle = NULL;
+// front right base rectangle
+struct rectangle* FR_base_rectangle = NULL;
+// back left base rectangle
+struct rectangle* BL_base_rectangle = NULL;
+// back right base rectangle
+struct rectangle* BR_base_rectangle = NULL;
 
 int* sensor_values;
 
@@ -186,19 +192,24 @@ void button_pressed(unsigned char key, int x, int y)
 {
 	switch(key){
 		case 'q':
-			base_rectangle->order = 1;
+			FL_base_rectangle->order = 1;
+			FR_base_rectangle->order = 1;
 			break;
 		case 'w':
-			base_rectangle->order = 2;
+			FL_base_rectangle->order = 2;
+			FR_base_rectangle->order = 2;
 			break;
 		case 'e':
-			base_rectangle->order = 3;
+			FL_base_rectangle->order = 3;
+			FR_base_rectangle->order = 3;
 			break;
 		case 'r':
-			base_rectangle->order = 4;
+			FL_base_rectangle->order = 4;
+			FR_base_rectangle->order = 4;
 			break;
 		default:
-			base_rectangle->order = 5;
+			FL_base_rectangle->order = 5;
+			FR_base_rectangle->order = 5;
 			break;
 	}
 	// call the function for drawing the 3 rectangles representing the distances
@@ -206,24 +217,18 @@ void button_pressed(unsigned char key, int x, int y)
 #if DEBUG_DRAW == 1
 	printf("call draw_parking_sensors \n");
 #endif
-	draw_parking_sensors();
+	draw_all_parking_sensors();
 }
 
-
-int main(int argc, char** argv) {
-	// key_pressed = 1;
-	base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
-	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
-	config_uart(&fd);
-	display_thing = XOpenDisplay(NULL);
-
+void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
+{
 	// create the base rectangle structure and fill it with data
 	base_rectangle->width = 45.0f;
 	base_rectangle->height = 17.0f;
-	base_rectangle->angle = 54.0f;
-	base_rectangle->x = 405.0f;
-	base_rectangle->y = 104.0f;
-	base_rectangle->order = 0;
+	base_rectangle->angle = angle;
+	base_rectangle->x = x;
+	base_rectangle->y = y;
+	base_rectangle->order = 4;
 	// using the RGBA color model, hence 4 bit array
 	// R - red
 	// G - green
@@ -233,6 +238,24 @@ int main(int argc, char** argv) {
 	base_rectangle->rgba_color[1] = 0.0f;
 	base_rectangle->rgba_color[2] = 0.0f;
 	base_rectangle->rgba_color[3] = 1.0f;
+}
+
+int main(int argc, char** argv) {
+	// allocate the base rectangles for each parking sensor/corner of the car
+	FL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	FR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	
+	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
+	config_uart(&fd);
+	display_thing = XOpenDisplay(NULL);
+
+
+	fill_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
+	fill_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
+
+
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
@@ -260,5 +283,7 @@ int main(int argc, char** argv) {
 	
 	/* 3) START GLUT PROCESSING CYCLE */
 	glutMainLoop();
+
+
 	return 0;
 }
