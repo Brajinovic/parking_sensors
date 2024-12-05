@@ -32,8 +32,8 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
 
-
 	struct rectangle rectangle = *base_rectangle;
+
 	if (rectangle.order <= 3)
 	{
 		// draw the first, base rectangle
@@ -92,8 +92,11 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 void draw_all_parking_sensors()
 {
 	display();
-	
+
 	draw_parking_sensors(FR_base_rectangle);
 	draw_parking_sensors(FL_base_rectangle);
+	draw_parking_sensors(BR_base_rectangle);
+	draw_parking_sensors(BL_base_rectangle);
+
 	glutSwapBuffers();
 }

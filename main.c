@@ -192,24 +192,63 @@ void button_pressed(unsigned char key, int x, int y)
 {
 	switch(key){
 		case 'q':
-			FL_base_rectangle->order = 1;
 			FR_base_rectangle->order = 1;
 			break;
 		case 'w':
-			FL_base_rectangle->order = 2;
 			FR_base_rectangle->order = 2;
 			break;
 		case 'e':
-			FL_base_rectangle->order = 3;
 			FR_base_rectangle->order = 3;
 			break;
 		case 'r':
-			FL_base_rectangle->order = 4;
 			FR_base_rectangle->order = 4;
 			break;
+
+
+		case 'a':
+			FL_base_rectangle->order = 1;
+			break;
+		case 's':
+			FL_base_rectangle->order = 2;
+			break;
+		case 'd':
+			FL_base_rectangle->order = 3;
+			break;
+		case 'f':
+			FL_base_rectangle->order = 4;
+			break;
+
+		case 'z':
+			BR_base_rectangle->order = 1;
+			break;
+		case 'u':
+			BR_base_rectangle->order = 2;
+			break;
+		case 'i':
+			BR_base_rectangle->order = 3;
+			break;
+		case 'o':
+			BR_base_rectangle->order = 4;
+			break;
+
+		case 'h':
+			BL_base_rectangle->order = 1;
+			break;
+		case 'j':
+			BL_base_rectangle->order = 2;
+			break;
+		case 'k':
+			BL_base_rectangle->order = 3;
+			break;
+		case 'l':
+			BL_base_rectangle->order = 4;
+			break;
+
 		default:
-			FL_base_rectangle->order = 5;
-			FR_base_rectangle->order = 5;
+			FR_base_rectangle->order = 4;
+			FL_base_rectangle->order = 4;
+			BR_base_rectangle->order = 4;
+			BL_base_rectangle->order = 4;
 			break;
 	}
 	// call the function for drawing the 3 rectangles representing the distances
@@ -254,6 +293,8 @@ int main(int argc, char** argv) {
 
 	fill_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
 	fill_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
+	fill_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
+	fill_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
 
 
 	/* 1) INITIALIZATION */

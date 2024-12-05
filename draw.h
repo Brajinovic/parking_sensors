@@ -11,7 +11,8 @@
 #define TRANSPARENCY_OFFSET -30 // percentage
 #define ORDER_OFFSET 1
 
-#define DEBUG_DRAW 1
+#define DEBUG_DRAW 0
+
 struct rectangle{
 	int x;
 	int y;
@@ -23,8 +24,11 @@ struct rectangle{
 };
 
 // located in main.c
-extern struct rectangle* FL_base_rectangle;
+
 extern struct rectangle* FR_base_rectangle;
+extern struct rectangle* FL_base_rectangle;
+extern struct rectangle* BR_base_rectangle;
+extern struct rectangle* BL_base_rectangle;
 
 void draw_rectangle_struct(struct rectangle*);
 void draw_parking_sensors();
