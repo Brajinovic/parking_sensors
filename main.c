@@ -1,3 +1,10 @@
+/*
+IDEA: In order to get rid of global variables, I can localize them to this file.
+Pros: I get rid of global variables
+Cons: It's a pain in the ass :)
+*/
+
+
 #include <string.h>
 #include <errno.h>
 #include "idle.h"
