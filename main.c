@@ -28,13 +28,13 @@ Cons: It's a pain in the ass :)
 #define MAX_HEIGHT 2
 
 // front left base rectangle
-struct rectangle* FL_base_rectangle = NULL;
+static struct rectangle* FL_base_rectangle = NULL;
 // front right base rectangle
-struct rectangle* FR_base_rectangle = NULL;
+static struct rectangle* FR_base_rectangle = NULL;
 // back left base rectangle
-struct rectangle* BL_base_rectangle = NULL;
+static struct rectangle* BL_base_rectangle = NULL;
 // back right base rectangle
-struct rectangle* BR_base_rectangle = NULL;
+static struct rectangle* BR_base_rectangle = NULL;
 
 int* sensor_values;
 
@@ -195,75 +195,40 @@ void display() {
 
 }
 
+void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
+{
+	struct keymap* keys = base_rectangle->keys;
+	if (key == keys->far_key)
+	{
+
+		base_rectangle->distance = 1; // in case the close distance button has been pressed, set the order to 1
+
+	} else if (key == keys->middle_key)
+	{
+		base_rectangle->distance = 2; // in case the middle distance button has been pressed, set the order to 2
+
+	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 3
+	{
+		base_rectangle->distance = 3;
+
+	} else if (key == keys->clear_key) // in case the clear button has been pressed, set the order to 4
+	{
+		base_rectangle->distance = 4;
+
+	} 
+}
 void button_pressed(unsigned char key, int x, int y)
 {
-	switch(key){
-		case 'q':
-			FR_base_rectangle->order = 1;
-			break;
-		case 'w':
-			FR_base_rectangle->order = 2;
-			break;
-		case 'e':
-			FR_base_rectangle->order = 3;
-			break;
-		case 'r':
-			FR_base_rectangle->order = 4;
-			break;
-
-
-		case 'a':
-			FL_base_rectangle->order = 1;
-			break;
-		case 's':
-			FL_base_rectangle->order = 2;
-			break;
-		case 'd':
-			FL_base_rectangle->order = 3;
-			break;
-		case 'f':
-			FL_base_rectangle->order = 4;
-			break;
-
-		case 'z':
-			BR_base_rectangle->order = 1;
-			break;
-		case 'u':
-			BR_base_rectangle->order = 2;
-			break;
-		case 'i':
-			BR_base_rectangle->order = 3;
-			break;
-		case 'o':
-			BR_base_rectangle->order = 4;
-			break;
-
-		case 'h':
-			BL_base_rectangle->order = 1;
-			break;
-		case 'j':
-			BL_base_rectangle->order = 2;
-			break;
-		case 'k':
-			BL_base_rectangle->order = 3;
-			break;
-		case 'l':
-			BL_base_rectangle->order = 4;
-			break;
-
-		default:
-			FR_base_rectangle->order = 4;
-			FL_base_rectangle->order = 4;
-			BR_base_rectangle->order = 4;
-			BL_base_rectangle->order = 4;
-			break;
-	}
+	check_pressed_buttons(key, FR_base_rectangle);
+	check_pressed_buttons(key, FL_base_rectangle);
+	check_pressed_buttons(key, BR_base_rectangle);
+	check_pressed_buttons(key, BL_base_rectangle);
 	// call the function for drawing the 3 rectangles representing the distances
-	// in the parking sensors
+	// in the parking sensorss
 #if DEBUG_DRAW == 1
 	printf("call draw_parking_sensors \n");
 #endif
-	draw_all_parking_sensors();
+	draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 }
 
 void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
@@ -274,7 +239,7 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 	base_rectangle->angle = angle;
 	base_rectangle->x = x;
 	base_rectangle->y = y;
-	base_rectangle->order = 4;
+	base_rectangle->distance = 4;
 	// using the RGBA color model, hence 4 bit array
 	// R - red
 	// G - green
@@ -289,19 +254,47 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
 	FL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	FL_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+
 	FR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
-	BL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
-	BR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	FR_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
 	
+	BL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BL_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+	
+	BR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BR_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+	
+#if USE_PARKING_SENSOR == 1
 	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
 	config_uart(&fd);
 	display_thing = XOpenDisplay(NULL);
-
+#endif
 
 	fill_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
+	FR_base_rectangle->keys->far_key = 'q';
+	FR_base_rectangle->keys->middle_key = 'w';
+	FR_base_rectangle->keys->close_key = 'e';
+	FR_base_rectangle->keys->clear_key = 'r';
+
 	fill_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
+	FL_base_rectangle->keys->far_key = 'a';
+	FL_base_rectangle->keys->middle_key = 's';
+	FL_base_rectangle->keys->close_key = 'd';
+	FL_base_rectangle->keys->clear_key = 'f';
+	
+
 	fill_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
+	BR_base_rectangle->keys->far_key = 'z';
+	BR_base_rectangle->keys->middle_key = 'u';
+	BR_base_rectangle->keys->close_key = 'i';
+	BR_base_rectangle->keys->clear_key = 'o';
+
 	fill_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
+	BL_base_rectangle->keys->far_key = 'h';
+	BL_base_rectangle->keys->middle_key = 'j';
+	BL_base_rectangle->keys->close_key = 'k';
+	BL_base_rectangle->keys->clear_key = 'l';
 
 
 	/* 1) INITIALIZATION */

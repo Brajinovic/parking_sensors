@@ -13,24 +13,29 @@
 
 #define DEBUG_DRAW 0
 
+struct keymap
+{
+	char far_key;
+	char middle_key;
+	char close_key;
+	char clear_key;
+};
+
 struct rectangle{
 	int x;
 	int y;
-	int order;
+	int distance;
 	float width;
 	float height;
 	float angle;
 	float rgba_color[4];
+	struct keymap* keys;
 };
 
-// located in main.c
 
-extern struct rectangle* FR_base_rectangle;
-extern struct rectangle* FL_base_rectangle;
-extern struct rectangle* BR_base_rectangle;
-extern struct rectangle* BL_base_rectangle;
+void draw_rectangle(struct rectangle*);
+void draw_parking_sensors(struct rectangle*);
+void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
 
-void draw_rectangle_struct(struct rectangle*);
-void draw_parking_sensors();
 
 #endif

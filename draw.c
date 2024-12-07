@@ -1,7 +1,7 @@
 #include "draw.h"
 
 // function for drawing rectangles based on the rectangle structure
-void draw_rectangle_struct(struct rectangle* rect)
+void draw_rectangle(struct rectangle* rect)
 {
 	// clear previous settings regarding the view matrix
 	glLoadIdentity();
@@ -34,19 +34,19 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 	struct rectangle rectangle = *base_rectangle;
 
-	if (rectangle.order <= 3)
+	if (rectangle.distance <= 3)
 	{
 		// draw the first, base rectangle
 #if DEBUG_DRAW == 1
 	printf(" draw first rectangle\n");
 	printf(" x pos: %d\n", base_rectangle->x);
 #endif		
-		draw_rectangle_struct(&rectangle);
+		draw_rectangle(&rectangle);
 	} else
 	{
 		
 	}
-	if (rectangle.order <= 2)
+	if (rectangle.distance <= 2)
 	{
 		// calculate the X coordinate for the second rectangle
 		// by using the offset that was above defined
@@ -65,12 +65,12 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	printf(" x pos: %d\n", rectangle.x);
 #endif	
 
-		draw_rectangle_struct(&rectangle);
+		draw_rectangle(&rectangle);
 	} else
 	{
 
 	}
-	if (rectangle.order <= 1)
+	if (rectangle.distance <= 1)
 	{
 		// this code is similar to the code above, I am calculating new values for the third rectangle
 		rectangle.x = rectangle.x + X_OFFSET;
@@ -82,14 +82,14 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	printf(" draw third rectangle\n");
 	printf(" x pos: %d", rectangle.x);
 #endif			
-		draw_rectangle_struct(&rectangle);
+		draw_rectangle(&rectangle);
 	} else
 	{
 
 	}
 }
 
-void draw_all_parking_sensors()
+void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectangle* FR_base_rectangle, struct rectangle* BL_base_rectangle, struct rectangle* BR_base_rectangle)
 {
 	display();
 
