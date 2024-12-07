@@ -1,12 +1,47 @@
-#include <stdio.h>
-#include <GL/glut.h>
+/*
+IDEA: In order to get rid of global variables, I can localize them to this file.
+Pros: I get rid of global variables
+Cons: It's a pain in the ass :)
+*/
+
+
 #include <string.h>
 #include <errno.h>
+#include "idle.h"
 
+#include "uart_handler.h"
+#include "draw.h"
+
+#define SUCCESS 1
+#define FAIL 0
+#define True 1
+#define False 0
 
 #define DEBUG 0
+#define DEBUG_IDLE 0
+
+#define START_COORDINATE_X 0
+#define START_COORDINATE_Y 0
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
+#define MIN_HEIGHT -4
+#define MAX_HEIGHT 2
+
+// front left base rectangle
+static struct rectangle* FL_base_rectangle = NULL;
+// front right base rectangle
+static struct rectangle* FR_base_rectangle = NULL;
+// back left base rectangle
+static struct rectangle* BL_base_rectangle = NULL;
+// back right base rectangle
+static struct rectangle* BR_base_rectangle = NULL;
+
+int* sensor_values;
+
+// uart handler initialisation
+Display *display_thing;
+unsigned int keycode;
+int fd;
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -85,16 +120,16 @@ void reshape(int width, int height)
 #if DEBUG == 1
 	printf("\nreshape callback\n");
 #endif
-	// specify the desired rectangle
-	// the first two numbers are the coordinates of the top left corner
-	glViewport(0, 0, width, height);
+	// specify the top left corner coordinates
+	// specify the new rectangle width and height
+	glViewport(START_COORDINATE_X, START_COORDINATE_Y, width, height);
 	// switch to matrix projection
 	glMatrixMode(GL_PROJECTION);
 	// clean projection matrix
 	glLoadIdentity();
-	// set camera view (orthographic projection with 4x4 unit square canvas)
-
-	glOrtho(0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 2, -4);
+	// set camera view
+	// set the coordinate system in the range [0, WINDOW_WIDTH], [0, WINDOW_HEIGHT]
+	glOrtho(START_COORDINATE_X, WINDOW_WIDTH, WINDOW_HEIGHT, START_COORDINATE_X, MAX_HEIGHT, MIN_HEIGHT);
 	// swith back to matrix
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -106,10 +141,10 @@ void draw_canvas(int width, int height)
 	// pick the color (white in this case)
 	glColor3f(1.0, 1.0, 1.0);
 	// draw the canvas over the given area
-	glTexCoord2f(0, WINDOW_HEIGHT); glVertex3f(0, 0, 0);
+	glTexCoord2f(START_COORDINATE_X, WINDOW_HEIGHT); glVertex3f(0, 0, 0);
 	glTexCoord2f(WINDOW_WIDTH, WINDOW_HEIGHT); glVertex3f(width, 0, 0);
-	glTexCoord2f(WINDOW_WIDTH, 0); glVertex3f(width, height, 0);
-	glTexCoord2f(0, 0); glVertex3f(0, height, 0);
+	glTexCoord2f(WINDOW_WIDTH, START_COORDINATE_Y); glVertex3f(width, height, 0);
+	glTexCoord2f(START_COORDINATE_X, START_COORDINATE_Y); glVertex3f(0, height, 0);
 }
 
 
@@ -118,6 +153,7 @@ void loadTexture()
 #if DEBUG == 1
 	printf("\nloadTexture\n");
 #endif
+
 	GLuint texture[1]; // declaring space for one texture
 	int twidth, theight; // declaring variable for width and height of an image
 	unsigned char* tdata; // declaring pixel data
@@ -127,7 +163,6 @@ void loadTexture()
 							   // generating a texture to show the image
 	glGenTextures(1, &texture[0]);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	// printf("width: %d\n height: %d\n", twidth, theight);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -136,69 +171,132 @@ void loadTexture()
 
 
 void display() {
-#if DEBUG == 1
+// debug printing
+#if DEBUG_DRAW == 1
 	printf("\nDisplay\n");
 #endif
+
+	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//glBindTexture(GL_TEXTURE_2D, texName);
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
-	// draw the canvas over the given area
 	
+	// this is a specific way to load the image
+	// in here we are loading the image as a texture, drawing a rectangle and then 
+	// we apply this texture to the rectangle
 	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
 	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(405.0f, 104.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);   //choosing red color
-	
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(45.00f, 0.0f, 0.0f);
-		glVertex3f(45.00f, 17.00f, 0.0f);
-		glVertex3f(0.0f, 17.00f, 0.0f);
-		
-	glEnd();
-
-	
-	glLoadIdentity();
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(390.0f, 125.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.65f);   //choosing green color
-		
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(80.0f, 0.0f, 0.0f);
-		glVertex3f(80.0f, 18.0f, 0.0f);
-		glVertex3f(0.0f, 18.0f, 0.0f);
-	glEnd();
-	
-	glLoadIdentity();
-	glRotatef(54.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(375.0f, 147.0f, -1.0f);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.5f);   //choosing red color
-		
-	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(110.00f, 0.0f, 0.0f);
-		glVertex3f(110.00f, 20.00f, 0.0f);
-		glVertex3f(0.0f, 20.00f, 0.0f);
-	glEnd();
-	
+	// apply the drawings to the window
 	glutSwapBuffers();
+
 }
 
-
-void idle()
+void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 {
-	// here comes the code which will be executed when program state is idle
+	struct keymap* keys = base_rectangle->keys;
+	if (key == keys->far_key)
+	{
 
+		base_rectangle->distance = 1; // in case the close distance button has been pressed, set the order to 1
+
+	} else if (key == keys->middle_key)
+	{
+		base_rectangle->distance = 2; // in case the middle distance button has been pressed, set the order to 2
+
+	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 3
+	{
+		base_rectangle->distance = 3;
+
+	} else if (key == keys->clear_key) // in case the clear button has been pressed, set the order to 4
+	{
+		base_rectangle->distance = 4;
+
+	} 
+}
+void button_pressed(unsigned char key, int x, int y)
+{
+	check_pressed_buttons(key, FR_base_rectangle);
+	check_pressed_buttons(key, FL_base_rectangle);
+	check_pressed_buttons(key, BR_base_rectangle);
+	check_pressed_buttons(key, BL_base_rectangle);
+	// call the function for drawing the 3 rectangles representing the distances
+	// in the parking sensorss
+#if DEBUG_DRAW == 1
+	printf("call draw_parking_sensors \n");
+#endif
+	draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
+}
+
+void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
+{
+	// create the base rectangle structure and fill it with data
+	base_rectangle->width = 45.0f;
+	base_rectangle->height = 17.0f;
+	base_rectangle->angle = angle;
+	base_rectangle->x = x;
+	base_rectangle->y = y;
+	base_rectangle->distance = 4;
+	// using the RGBA color model, hence 4 bit array
+	// R - red
+	// G - green
+	// B - blue
+	// A - alpha (transparency)
+	base_rectangle->rgba_color[0] = 1.0f;
+	base_rectangle->rgba_color[1] = 0.0f;
+	base_rectangle->rgba_color[2] = 0.0f;
+	base_rectangle->rgba_color[3] = 1.0f;
 }
 
 int main(int argc, char** argv) {
+	// allocate the base rectangles for each parking sensor/corner of the car
+	FL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	FL_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+
+	FR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	FR_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+	
+	BL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BL_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+	
+	BR_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));
+	BR_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
+	
+#if USE_PARKING_SENSOR == 1
+	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
+	config_uart(&fd);
+	display_thing = XOpenDisplay(NULL);
+#endif
+
+	fill_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
+	FR_base_rectangle->keys->far_key = 'q';
+	FR_base_rectangle->keys->middle_key = 'w';
+	FR_base_rectangle->keys->close_key = 'e';
+	FR_base_rectangle->keys->clear_key = 'r';
+
+	fill_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
+	FL_base_rectangle->keys->far_key = 'a';
+	FL_base_rectangle->keys->middle_key = 's';
+	FL_base_rectangle->keys->close_key = 'd';
+	FL_base_rectangle->keys->clear_key = 'f';
+	
+
+	fill_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
+	BR_base_rectangle->keys->far_key = 'z';
+	BR_base_rectangle->keys->middle_key = 'u';
+	BR_base_rectangle->keys->close_key = 'i';
+	BR_base_rectangle->keys->clear_key = 'o';
+
+	fill_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
+	BL_base_rectangle->keys->far_key = 'h';
+	BL_base_rectangle->keys->middle_key = 'j';
+	BL_base_rectangle->keys->close_key = 'k';
+	BL_base_rectangle->keys->clear_key = 'l';
+
+
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
@@ -219,10 +317,14 @@ int main(int argc, char** argv) {
 	glutReshapeFunc(reshape);
 	// function called when nothing else is executing and CPU is free
 	glutIdleFunc(idle);
+	// enable user input
+	glutKeyboardFunc(button_pressed);
 	initGL();
 	loadTexture();   //enable this to load image
 	
 	/* 3) START GLUT PROCESSING CYCLE */
 	glutMainLoop();
+
+
 	return 0;
 }
