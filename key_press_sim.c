@@ -65,7 +65,7 @@ void set_blocking (int fd, int should_block)
 			printf ("error %d setting term attributes", errno);
 }
 
-
+/*
 int main(void)
 {
 
@@ -103,3 +103,4 @@ int main(void)
 	}
 	return SUCCESS;
 }
+*/

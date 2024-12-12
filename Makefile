@@ -1,8 +1,10 @@
-SRCS =  main.c uart_handler.c draw.c idle.c
-CFLAGS = -lglut -lGL -lX11 -lXtst
+SRCS =  *.c
+CFLAGS = -lglut -lGL -lX11 -lXtst -Isrc/include
+vpath %.c $(src/)
+vpath %.o %(src/)
 compile:
-	gcc $(SRCS) -o main.out $(CFLAGS)
-	./main.out
+	gcc src/$(SRCS) -o bin/main.out $(CFLAGS)
+	./bin/main.out
 
 generate_dependencies:
 	makedepend -- $(CFLAGS) -- $(SRCS)
