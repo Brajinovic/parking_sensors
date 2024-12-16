@@ -35,6 +35,7 @@ struct rectangle{
 
 void display(void);
 void draw_rectangle(struct rectangle*);
+void calculate_rectangle_offset(struct rectangle* rectangle);
 void draw_parking_sensors(struct rectangle*);
 void draw_parking_sensor_outline(struct rectangle*);
 void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);

@@ -25,6 +25,17 @@ void draw_rectangle(struct rectangle* rect)
 	glLoadIdentity();
 }
 
+void calculate_rectangle_offset(struct rectangle* rectangle)
+{
+	rectangle->x = rectangle->x + X_OFFSET;
+	// calculate the Y coordinate for the second rectangle
+	rectangle->y = rectangle->y + Y_OFFSET;
+	// calculate the second rectangle width
+	rectangle->width = rectangle->width + WIDTH_OFFSET;
+	// calculate the second rectangle height
+	rectangle->height = rectangle->height + HEIGHT_OFFSET;
+}
+
 // function for drawing the 3 "parking sensors"
 void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 {
@@ -33,7 +44,6 @@ void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 #endif
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
-
 	struct rectangle rectangle = *base_rectangle;
 	rectangle.rgba_color[3] = FRAME_TRANSPARENCY / 100.0f;
 	draw_rectangle(&rectangle);
@@ -44,17 +54,8 @@ void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 	printf(" x pos: %d\n", base_rectangle->x);
 #endif		
 
-	// calculate the X coordinate for the second rectangle
-	// by using the offset that was above defined
-	rectangle.x = rectangle.x + X_OFFSET;
-	// calculate the Y coordinate for the second rectangle
-	rectangle.y = rectangle.y + Y_OFFSET;
-	// calculate the second rectangle width
-	rectangle.width = rectangle.width + WIDTH_OFFSET;
-	// calculate the second rectangle height
-	rectangle.height = rectangle.height + HEIGHT_OFFSET;
-	
 
+	calculate_rectangle_offset(&rectangle);
 #if DEBUG_DRAW == 1
 	printf(" draw second rectangle\n");
 	printf(" x pos: %d\n", rectangle.x);
@@ -62,11 +63,7 @@ void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 
 	draw_rectangle(&rectangle);
 
-	// this code is similar to the code above, I am calculating new values for the third rectangle
-	rectangle.x = rectangle.x + X_OFFSET;
-	rectangle.y = rectangle.y + Y_OFFSET;
-	rectangle.width = rectangle.width + WIDTH_OFFSET;
-	rectangle.height = rectangle.height + HEIGHT_OFFSET;
+	calculate_rectangle_offset(&rectangle);
 #if DEBUG_DRAW == 1
 	printf(" draw third rectangle\n");
 	printf(" x pos: %d", rectangle.x);
@@ -98,15 +95,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 		
 	}
 
-	// calculate the X coordinate for the second rectangle
-	// by using the offset that was above defined
-	rectangle.x = rectangle.x + X_OFFSET;
-	// calculate the Y coordinate for the second rectangle
-	rectangle.y = rectangle.y + Y_OFFSET;
-	// calculate the second rectangle width
-	rectangle.width = rectangle.width + WIDTH_OFFSET;
-	// calculate the second rectangle height
-	rectangle.height = rectangle.height + HEIGHT_OFFSET;
+	calculate_rectangle_offset(&rectangle);
 
 	if (rectangle.distance == 2)
 	{
@@ -121,11 +110,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	{
 
 	}
-	// this code is similar to the code above, I am calculating new values for the third rectangle
-	rectangle.x = rectangle.x + X_OFFSET;
-	rectangle.y = rectangle.y + Y_OFFSET;
-	rectangle.width = rectangle.width + WIDTH_OFFSET;
-	rectangle.height = rectangle.height + HEIGHT_OFFSET;
+	calculate_rectangle_offset(&rectangle);
 	if (rectangle.distance == 1)
 	{
 		

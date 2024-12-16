@@ -220,6 +220,8 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 
 	} 
 }
+
+
 void button_pressed(unsigned char key, int x, int y)
 {
 	check_pressed_buttons(key, FR_base_rectangle);
