@@ -7,5 +7,7 @@ V1.0
 	- added parking sensors for all 4 corners
 
 v1.1
-	- change parking sensors GUi
-	- localize the global variables 
+	- localized the global variables 
+	- split the code into multiple files
+
+v1.2
