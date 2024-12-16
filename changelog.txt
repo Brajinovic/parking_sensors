@@ -1,0 +1,13 @@
+V1.0
+	- changed the origin to top left
+	- changed the coordinate system from [-2, 2] to [0, 720]
+	- added parking sensor drawing with just the base rectangle
+	- added object detection simulation over user keyboard input
+	- added UART object distance input
+	- added parking sensors for all 4 corners
+
+v1.1
+	- localized the global variables 
+	- split the code into multiple files
+
+v1.2
