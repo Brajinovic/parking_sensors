@@ -10,7 +10,7 @@ void press_key(int key, Display *display_thing, unsigned int keycode)
 }
 
 
-void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode)
+void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values)
 {
 // start of parking sensor logic
 // I am using the HC-SR04 ultrasonic sensors...

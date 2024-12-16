@@ -36,12 +36,12 @@ static struct rectangle* BL_base_rectangle = NULL;
 // back right base rectangle
 static struct rectangle* BR_base_rectangle = NULL;
 
-int* sensor_values;
+static int* sensor_values;
 
 // uart handler initialisation
-Display *display_thing;
-unsigned int keycode;
-int fd;
+static Display *display_thing;
+static unsigned int keycode;
+static int fd;
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -260,10 +260,10 @@ void idle()
 		printf("Error when reading from UART!");
 	}
 #endif
-	check_distance(FL_base_rectangle, display_thing, keycode);
-	check_distance(FR_base_rectangle, display_thing, keycode);
-	check_distance(BL_base_rectangle, display_thing, keycode);
-	check_distance(BR_base_rectangle, display_thing, keycode);
+	check_distance(FL_base_rectangle, display_thing, keycode, sensor_values);
+	check_distance(FR_base_rectangle, display_thing, keycode, sensor_values);
+	check_distance(BL_base_rectangle, display_thing, keycode, sensor_values);
+	check_distance(BR_base_rectangle, display_thing, keycode, sensor_values);
 
 }
 
