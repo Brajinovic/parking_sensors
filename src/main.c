@@ -113,6 +113,7 @@ void initGL()
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 }
 
+
 // this needs to be executed at least once in order to set the display properties :)
 void reshape(int width, int height)
 {
@@ -132,6 +133,7 @@ void reshape(int width, int height)
 	// swith back to matrix
 	glMatrixMode(GL_MODELVIEW);
 }
+
 
 void draw_canvas(int width, int height)
 {
@@ -198,6 +200,7 @@ void display() {
 
 }
 
+
 void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 {
 	struct keymap* keys = base_rectangle->keys;
@@ -224,17 +227,26 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 
 void button_pressed(unsigned char key, int x, int y)
 {
-	check_pressed_buttons(key, FR_base_rectangle);
-	check_pressed_buttons(key, FL_base_rectangle);
-	check_pressed_buttons(key, BR_base_rectangle);
-	check_pressed_buttons(key, BL_base_rectangle);
-	// call the function for drawing the 3 rectangles representing the distances
-	// in the parking sensors
-#if DEBUG_DRAW == 1
-	printf("call draw_parking_sensors \n");
-#endif
-	draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
+	static previous_key = 0;
+	// execute the following code only if there was a different key pressed
+	if (key != previous_key){
+		check_pressed_buttons(key, FR_base_rectangle);
+		check_pressed_buttons(key, FL_base_rectangle);
+		check_pressed_buttons(key, BR_base_rectangle);
+		check_pressed_buttons(key, BL_base_rectangle);
+		// call the function for drawing the 3 rectangles representing the distances
+		// in the parking sensors
+	#if DEBUG_DRAW == 1
+		printf("call draw_parking_sensors \n");
+	#endif
+		draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
+		previous_key = key;
+	} else
+	{
+
+	}
 }
+
 
 void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
 {
@@ -256,6 +268,7 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 	base_rectangle->rgba_color[3] = 1.0f;
 }
 
+
 void idle()
 {
 #if USE_PARKING_SENSOR == 1
@@ -271,6 +284,7 @@ void idle()
 	check_distance(BR_base_rectangle, display_thing, keycode, sensor_values);
 
 }
+
 
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
