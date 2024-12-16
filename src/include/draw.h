@@ -9,6 +9,7 @@
 #define X_OFFSET -16
 #define Y_OFFSET 21
 #define TRANSPARENCY_OFFSET -30 // percentage
+#define FRAME_TRANSPARENCY 20
 #define ORDER_OFFSET 1
 
 #define DEBUG_DRAW 0
@@ -35,6 +36,7 @@ struct rectangle{
 void display(void);
 void draw_rectangle(struct rectangle*);
 void draw_parking_sensors(struct rectangle*);
+void draw_parking_sensor_outline(struct rectangle*);
 void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
 
 

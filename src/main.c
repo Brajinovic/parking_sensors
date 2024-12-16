@@ -189,6 +189,10 @@ void display() {
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
+	draw_parking_sensor_outline(FR_base_rectangle);
+	draw_parking_sensor_outline(FL_base_rectangle);
+	draw_parking_sensor_outline(BR_base_rectangle);
+	draw_parking_sensor_outline(BL_base_rectangle);
 	// apply the drawings to the window
 	glutSwapBuffers();
 
@@ -223,7 +227,7 @@ void button_pressed(unsigned char key, int x, int y)
 	check_pressed_buttons(key, BR_base_rectangle);
 	check_pressed_buttons(key, BL_base_rectangle);
 	// call the function for drawing the 3 rectangles representing the distances
-	// in the parking sensorss
+	// in the parking sensors
 #if DEBUG_DRAW == 1
 	printf("call draw_parking_sensors \n");
 #endif
