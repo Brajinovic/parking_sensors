@@ -1,5 +1,6 @@
 #include "draw.h"
 
+
 void display(void);
 // function for drawing rectangles based on the rectangle structure
 void draw_rectangle(struct rectangle* rect)

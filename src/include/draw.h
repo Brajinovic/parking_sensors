@@ -32,7 +32,7 @@ struct rectangle{
 	struct keymap* keys;
 };
 
-
+void display(void);
 void draw_rectangle(struct rectangle*);
 void draw_parking_sensors(struct rectangle*);
 void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
