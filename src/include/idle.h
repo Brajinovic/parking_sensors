@@ -21,12 +21,9 @@
 // play audio corresponding to the distance to the object
 #define USE_AUDIO 1
 
-// located in main.c
-extern int* sensor_values;
-extern int fd;
 
 
-void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode);
+void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values);
 void press_key(int key, Display *display_thing, unsigned int keycode);
 
 #endif
