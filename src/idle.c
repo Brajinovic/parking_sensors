@@ -1,7 +1,7 @@
 #include "idle.h"
 
 
-void press_key(int key)
+void press_key(int key, Display *display_thing, unsigned int keycode)
 {
 	keycode = XKeysymToKeycode(display_thing, key);
 	XTestFakeKeyEvent(display_thing, keycode, True, 0);
@@ -10,8 +10,12 @@ void press_key(int key)
 }
 
 
-void check_distance(struct rectangle* base_rectangle)
+void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode)
 {
+// start of parking sensor logic
+// I am using the HC-SR04 ultrasonic sensors...
+#if USE_PARKING_SENSOR == 1
+
 #if DEBUG_IDLE == 1
 	printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
 #endif
@@ -22,7 +26,7 @@ void check_distance(struct rectangle* base_rectangle)
 		{
 
 			printf("\n< 31\n");
-			press_key(XK_e);
+			press_key(XK_e, display_thing, keycode);
 		} else
 		{
 
@@ -34,7 +38,7 @@ void check_distance(struct rectangle* base_rectangle)
 		{
 
 			printf("\n< 61\n");
-			press_key(XK_w);
+			press_key(XK_w, display_thing, keycode);
 		} else
 		{
 
@@ -49,7 +53,7 @@ void check_distance(struct rectangle* base_rectangle)
 		{
 
 			printf("\n< 101\n");
-			press_key(XK_q);
+			press_key(XK_q, display_thing, keycode);
 		} else
 		{
 
@@ -59,14 +63,17 @@ void check_distance(struct rectangle* base_rectangle)
 		if (base_rectangle->distance != 4)
 		{
 			printf("\n > 100\n");
-			press_key(XK_r);
+			press_key(XK_r, display_thing, keycode);
 		} else
 		{
 
 		}
 	}
+// end of parking sensor logic
+#endif
+
 #if USE_AUDIO == 1
-	
+	printf("Using audio!\n");
 	int factor = 0;
 	struct timeval time;
 	int current_time = 0;
@@ -129,15 +136,3 @@ void check_distance(struct rectangle* base_rectangle)
 }
 
 
-void idle()
-{
-#if USE_PARKING_SENSOR == 1
-`	// read the parking sensor values
-	if (get_sensor_data(sensor_values, fd) == 0)
-	{
-		printf("Error when reading from UART!");
-	}
-	check_distance(FL_base_rectangle);
-
-#endif
-}

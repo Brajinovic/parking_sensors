@@ -251,6 +251,22 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 	base_rectangle->rgba_color[3] = 1.0f;
 }
 
+void idle()
+{
+#if USE_PARKING_SENSOR == 1
+	// read the parking sensor values
+	if (get_sensor_data(sensor_values, fd) == 0)
+	{
+		printf("Error when reading from UART!");
+	}
+#endif
+	check_distance(FL_base_rectangle, display_thing, keycode);
+	check_distance(FR_base_rectangle, display_thing, keycode);
+	check_distance(BL_base_rectangle, display_thing, keycode);
+	check_distance(BR_base_rectangle, display_thing, keycode);
+
+}
+
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
 	FL_base_rectangle = (struct rectangle*)malloc(sizeof(struct rectangle));

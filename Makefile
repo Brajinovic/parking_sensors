@@ -2,8 +2,12 @@ SRCS =  *.c
 CFLAGS = -lglut -lGL -lX11 -lXtst -Isrc/include
 vpath %.c $(src/)
 vpath %.o %(src/)
+
 compile:
 	gcc src/$(SRCS) -o bin/main.out $(CFLAGS)
+	./bin/main.out
+
+run:
 	./bin/main.out
 
 generate_dependencies:
