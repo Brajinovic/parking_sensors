@@ -1,10 +1,3 @@
-/*
-IDEA: In order to get rid of global variables, I can localize them to this file.
-Pros: I get rid of global variables
-Cons: It's a pain in the ass :)
-*/
-
-
 #include <string.h>
 #include <errno.h>
 #include "idle.h"
@@ -12,6 +5,7 @@ Cons: It's a pain in the ass :)
 #include "uart_handler.h"
 #include "draw.h"
 
+// define return constants
 #define SUCCESS 1
 #define FAIL 0
 #define True 1
@@ -20,10 +14,15 @@ Cons: It's a pain in the ass :)
 #define DEBUG 0
 #define DEBUG_IDLE 0
 
+// define origin coordinates
 #define START_COORDINATE_X 0
 #define START_COORDINATE_Y 0
+
+// define window dimensions
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
+
+// define depth
 #define MIN_HEIGHT -4
 #define MAX_HEIGHT 2
 
@@ -114,6 +113,7 @@ void initGL()
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 }
 
+
 // this needs to be executed at least once in order to set the display properties :)
 void reshape(int width, int height)
 {
@@ -133,6 +133,7 @@ void reshape(int width, int height)
 	// swith back to matrix
 	glMatrixMode(GL_MODELVIEW);
 }
+
 
 void draw_canvas(int width, int height)
 {
@@ -190,10 +191,15 @@ void display() {
 	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
 	glEnd();
 	
+	draw_parking_sensor_outline(FR_base_rectangle);
+	draw_parking_sensor_outline(FL_base_rectangle);
+	draw_parking_sensor_outline(BR_base_rectangle);
+	draw_parking_sensor_outline(BL_base_rectangle);
 	// apply the drawings to the window
 	glutSwapBuffers();
 
 }
+
 
 void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 {
@@ -217,19 +223,30 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 
 	} 
 }
+
+
 void button_pressed(unsigned char key, int x, int y)
 {
-	check_pressed_buttons(key, FR_base_rectangle);
-	check_pressed_buttons(key, FL_base_rectangle);
-	check_pressed_buttons(key, BR_base_rectangle);
-	check_pressed_buttons(key, BL_base_rectangle);
-	// call the function for drawing the 3 rectangles representing the distances
-	// in the parking sensorss
-#if DEBUG_DRAW == 1
-	printf("call draw_parking_sensors \n");
-#endif
-	draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
+	static previous_key = 0;
+	// execute the following code only if there was a different key pressed
+	if (key != previous_key){
+		check_pressed_buttons(key, FR_base_rectangle);
+		check_pressed_buttons(key, FL_base_rectangle);
+		check_pressed_buttons(key, BR_base_rectangle);
+		check_pressed_buttons(key, BL_base_rectangle);
+		// call the function for drawing the 3 rectangles representing the distances
+		// in the parking sensors
+	#if DEBUG_DRAW == 1
+		printf("call draw_parking_sensors \n");
+	#endif
+		draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
+		previous_key = key;
+	} else
+	{
+
+	}
 }
+
 
 void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
 {
@@ -251,6 +268,7 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 	base_rectangle->rgba_color[3] = 1.0f;
 }
 
+
 void idle()
 {
 #if USE_PARKING_SENSOR == 1
@@ -266,6 +284,7 @@ void idle()
 	check_distance(BR_base_rectangle, display_thing, keycode, sensor_values);
 
 }
+
 
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
