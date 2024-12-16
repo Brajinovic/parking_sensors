@@ -1,10 +1,3 @@
-/*
-IDEA: In order to get rid of global variables, I can localize them to this file.
-Pros: I get rid of global variables
-Cons: It's a pain in the ass :)
-*/
-
-
 #include <string.h>
 #include <errno.h>
 #include "idle.h"
@@ -12,6 +5,7 @@ Cons: It's a pain in the ass :)
 #include "uart_handler.h"
 #include "draw.h"
 
+// define return constants
 #define SUCCESS 1
 #define FAIL 0
 #define True 1
@@ -20,10 +14,15 @@ Cons: It's a pain in the ass :)
 #define DEBUG 0
 #define DEBUG_IDLE 0
 
+// define origin coordinates
 #define START_COORDINATE_X 0
 #define START_COORDINATE_Y 0
+
+// define window dimensions
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
+
+// define depth
 #define MIN_HEIGHT -4
 #define MAX_HEIGHT 2
 

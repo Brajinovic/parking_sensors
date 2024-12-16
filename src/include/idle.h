@@ -1,10 +1,18 @@
 #ifndef IDLE_H
 #define IDLE_H
 
-#include "uart_handler.h"
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/extensions/XTest.h>
+#define USE_PARKING_SENSOR 0
+#if USE_PARKING_SENSOR == 1
+// deleted uart_handler.h as it is included in main.c, might cause problems later
+	#include <X11/Xlib.h>
+	#include <X11/keysym.h>
+	#include <X11/extensions/XTest.h>
+#else
+	#define Display int
+	#define True 1
+	#define False 0
+#endif
+
 #include <sys/time.h>
 #include "draw.h"
 
