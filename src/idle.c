@@ -14,6 +14,7 @@
 
 void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values)
 {
+
 // start of parking sensor logic
 // I am using the HC-SR04 ultrasonic sensors...
 #if USE_PARKING_SENSOR == 1
@@ -21,60 +22,93 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 	#if DEBUG_IDLE == 1
 		printf("\nDistance of Sensor 1: %d\n", *(sensor_values + 0));
 	#endif
-		// now interpret the received values
-		if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
+	// now interpret the received values
+	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
+	{
+		if (base_rectangle->distance != 3)
 		{
-			if (base_rectangle->distance != 3)
-			{
 
-				printf("\n< 31\n");
-				press_key(XK_e, display_thing, keycode);
-			} else
-			{
-
-			}
-			
-		}else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
+			printf("\n< 31\n");
+			press_key(XK_e, display_thing, keycode);
+		} else
 		{
-			if (base_rectangle->distance != 2)
-			{
 
-				printf("\n< 61\n");
-				press_key(XK_w, display_thing, keycode);
-			} else
-			{
-
-			}
-		} else if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
-		{
-			// only press the button once, do not do it repeatedly
-			// if the distance is less than 100 cm, press q, but in the
-			// next iteration, if the base_rectangle->distance is already 1, it means
-			// that the button was already pressed
-			if (base_rectangle->distance != 1)
-			{
-
-				printf("\n< 101\n");
-				press_key(XK_q, display_thing, keycode);
-			} else
-			{
-
-			}
-		} else if (*(sensor_values + 0) > 100)
-		{
-			if (base_rectangle->distance != 4)
-			{
-				printf("\n > 100\n");
-				press_key(XK_r, display_thing, keycode);
-			} else
-			{
-
-			}
 		}
+		
+	}else if (*(sensor_values + 0) < 61)	// if the distance is less than 60 cm, that is state 2
+	{
+		if (base_rectangle->distance != 2)
+		{
+
+			printf("\n< 61\n");
+			press_key(XK_w, display_thing, keycode);
+		} else
+		{
+
+		}
+	} else if (*(sensor_values + 0) < 101 )		// if the distance is less than 100 cm, that is state 1	
+	{
+		// only press the button once, do not do it repeatedly
+		// if the distance is less than 100 cm, press q, but in the
+		// next iteration, if the base_rectangle->distance is already 1, it means
+		// that the button was already pressed
+		if (base_rectangle->distance != 1)
+		{
+
+			printf("\n< 101\n");
+			press_key(XK_q, display_thing, keycode);
+		} else
+		{
+
+		}
+	} else if (*(sensor_values + 0) > 100)
+	{
+		if (base_rectangle->distance != 4)
+		{
+			printf("\n > 100\n");
+			press_key(XK_r, display_thing, keycode);
+		} else
+		{
+
+		}
+	}
 // end of parking sensor logic
 #endif
 
-#if USE_AUDIO == 1
+#if USE_MP3 == 1
+	static snd_pcm_t *pcm;
+	snd_pcm_open(&pcm, "default", SND_PCM_STREAM_PLAYBACK, 0);
+
+	static snd_pcm_hw_params_t *hw_params;
+	snd_pcm_hw_params_alloca(&hw_params);
+
+	snd_pcm_hw_params_any(pcm, hw_params);
+	snd_pcm_hw_params_set_access(pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
+	snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16_LE);
+	snd_pcm_hw_params_set_channels(pcm, hw_params, 1);
+	snd_pcm_hw_params_set_rate(pcm, hw_params, 44100, 0);
+	snd_pcm_hw_params_set_periods(pcm, hw_params, 1, 0);
+	snd_pcm_hw_params_set_period_time(pcm, hw_params, 100000, 0); // 0.1 seconds
+
+	snd_pcm_hw_params(pcm, hw_params);
+	
+	static short samples[9600] = {0};
+	static FILE* fp;
+	fp = fopen("beep-07a.wav","rb");
+	fread(samples, sizeof(short), 9600, fp);
+	 
+	snd_pcm_writei(pcm, samples, 9600);
+	
+	// Initialize the samples somehow
+
+	
+	snd_pcm_drain(pcm);
+snd_pcm_close(pcm);
+
+
+#endif
+
+#if USE_SYSTEM_AUDIO == 1
 	int factor = 0;
 	struct timeval time;
 	int current_time = 0;

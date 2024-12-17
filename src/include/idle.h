@@ -14,6 +14,7 @@
 #endif
 
 #include <sys/time.h>
+#include <alsa/asoundlib.h>
 #include "draw.h"
 
 #define DEBUG_IDLE 0
@@ -27,7 +28,8 @@
 #define USE_PARKING_SENSOR 0
 
 // play audio corresponding to the distance to the object
-#define USE_AUDIO 1
+#define USE_USE_SYSTEM_AUDIO 0
+#define USE_MP3 1
 
 
 

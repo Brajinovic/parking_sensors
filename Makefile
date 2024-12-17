@@ -1,5 +1,5 @@
 SRCS =  *.c
-CFLAGS = -lglut -lGL -lX11 -lXtst -Isrc/include
+CFLAGS = -lglut -lGL -lX11 -lXtst -lasound -Isrc/include
 vpath %.c $(src/)
 vpath %.o %(src/)
 
