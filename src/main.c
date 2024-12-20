@@ -224,15 +224,15 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 	if (key == keys->far_key)
 	{
 
-		base_rectangle->distance = 1; // in case the close distance button has been pressed, set the order to 1
+		base_rectangle->distance = 3; // in case the close distance button has been pressed, set the order to 3
 
 	} else if (key == keys->middle_key)
 	{
 		base_rectangle->distance = 2; // in case the middle distance button has been pressed, set the order to 2
 
-	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 3
+	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 1
 	{
-		base_rectangle->distance = 3;
+		base_rectangle->distance = 1;
 
 	} else if (key == keys->clear_key) // in case the clear button has been pressed, set the order to 4
 	{
@@ -285,7 +285,29 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 	base_rectangle->rgba_color[3] = 1.0f;
 }
 
+int checkState()
+{
+	int current_state = 4;
 
+	if (current_state > FL_base_rectangle->distance)
+	{
+		current_state = FL_base_rectangle->distance;
+	}
+	if (current_state > FR_base_rectangle->distance)
+	{
+		current_state = FR_base_rectangle->distance;
+	}
+	if (current_state > BL_base_rectangle->distance)
+	{
+		current_state = BL_base_rectangle->distance;
+	}
+	if (current_state > BR_base_rectangle->distance)
+	{
+		current_state = BR_base_rectangle->distance;
+	}
+
+	return current_state;
+}
 void idle()
 {
 	static int past_state = 4;
@@ -303,23 +325,24 @@ void idle()
 
 
 #if USE_MP3 == 1
-
-	if (FL_base_rectangle->distance == 3 && past_state != 3){
+	int state = checkState();
+	printf("distance: %d\n", state);
+	if (state == 3 && past_state != 3){
 		past_state = 3;	
-		snd_pcm_hw_params(pcm, hw_params_fast);
-	} else if (FL_base_rectangle->distance == 2 && past_state != 2)
+		snd_pcm_hw_params(pcm, hw_params_slow);
+	} else if (state == 2 && past_state != 2)
 	{
 		past_state = 2;
 		snd_pcm_hw_params(pcm, hw_params_medium);
-	} else if (FL_base_rectangle->distance == 1 && past_state != 1)
+	} else if (state == 1 && past_state != 1)
 	{
 		past_state = 1;
-		snd_pcm_hw_params(pcm, hw_params_slow);
-	} else if (FL_base_rectangle->distance == 4 && past_state != 4)
+		snd_pcm_hw_params(pcm, hw_params_fast);
+	} else if (state == 4 && past_state != 4)
 	{	
 		past_state = 4;
 	}
-	if (FL_base_rectangle->distance <= 3)
+	if (state <= 3)
 	{
 		// printf("noise %d\n", FL_base_rectangle->distance);
 		snd_pcm_writei(pcm, samples, SAMPLE_COUNT);
@@ -328,7 +351,6 @@ void idle()
 		// clear the output buffer
 		// otherwise sound will keep playing untill the buffer is empty
 		snd_pcm_drop(pcm);
-		// printf("shut up %d\n", FL_base_rectangle->distance);
 	}
 	
 #endif

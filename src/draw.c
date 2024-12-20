@@ -82,7 +82,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 	struct rectangle rectangle = *base_rectangle;
 
-	if (rectangle.distance == 3)
+	if (rectangle.distance == 1)
 	{
 		// draw the first, base rectangle
 #if DEBUG_DRAW == 1
@@ -111,7 +111,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 	}
 	calculate_rectangle_offset(&rectangle);
-	if (rectangle.distance == 1)
+	if (rectangle.distance == 3)
 	{
 		
 #if DEBUG_DRAW == 1

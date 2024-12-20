@@ -25,7 +25,7 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 	// now interpret the received values
 	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 3
 	{
-		if (base_rectangle->distance != 3)
+		if (base_rectangle->distance != 1)
 		{
 
 			printf("\n< 31\n");
@@ -52,7 +52,7 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 		// if the distance is less than 100 cm, press q, but in the
 		// next iteration, if the base_rectangle->distance is already 1, it means
 		// that the button was already pressed
-		if (base_rectangle->distance != 1)
+		if (base_rectangle->distance != 3)
 		{
 
 			printf("\n< 101\n");
@@ -102,7 +102,7 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 	printf(" ");
 	// with the help of struct rectangle member order, determine which tone is playing
 	// i.e. what should be the period of the audio sound
-	if (base_rectangle->distance == 3){
+	if (base_rectangle->distance == 1){
 		
 		if (factor > TONE_ONE_DURATION) // play a sound every 100 ms
 		{
@@ -122,7 +122,7 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 		{
 
 		}
-	} else if (base_rectangle->distance == 1)
+	} else if (base_rectangle->distance == 3)
 	{
 		if (factor > TONE_THREE_DURATION) // play a sound every 500 ms
 		{
