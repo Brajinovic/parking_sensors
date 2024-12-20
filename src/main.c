@@ -27,7 +27,11 @@
 #define MAX_HEIGHT 2
 
 // audio settings
-#define RATE 44100
+#define SLOW_RATE 16000
+#define MEDIUM_RATE 32000
+#define FAST_RATE 48000
+
+#define SAMPLE_COUNT 9600
 
 // front left base rectangle
 static struct rectangle* FL_base_rectangle = NULL;
@@ -45,12 +49,15 @@ static Display *display_thing;
 static unsigned int keycode;
 static int fd;
 
-// audio controller instance pointer
-static snd_pcm_t *pcm;
-static snd_pcm_hw_params_t *hw_params_slow;
-static snd_pcm_hw_params_t *hw_params_medium;
-static snd_pcm_hw_params_t *hw_params_fast;
-static short samples[9600];
+#if USE_MP3 == 1
+	// audio controller instance pointer
+	static int pcm_open = 1;
+	static snd_pcm_t *pcm;
+	static snd_pcm_hw_params_t *hw_params_slow;
+	static snd_pcm_hw_params_t *hw_params_medium;
+	static snd_pcm_hw_params_t *hw_params_fast;
+	static short samples[9600];
+#endif
 
 unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	const int BUFSIZE = 128;
@@ -237,7 +244,7 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 
 void button_pressed(unsigned char key, int x, int y)
 {
-	static previous_key = 0;
+	static int previous_key = 0;
 	// execute the following code only if there was a different key pressed
 	if (key != previous_key){
 		check_pressed_buttons(key, FR_base_rectangle);
@@ -281,7 +288,7 @@ void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_r
 
 void idle()
 {
-	static past_state = 4;
+	static int past_state = 4;
 #if USE_PARKING_SENSOR == 1
 	// read the parking sensor values
 	if (get_sensor_data(sensor_values, fd) == 0)
@@ -308,36 +315,39 @@ void idle()
 	{
 		past_state = 1;
 		snd_pcm_hw_params(pcm, hw_params_slow);
-	} else
+	} else if (FL_base_rectangle->distance == 4 && past_state != 4)
 	{	
-
+		past_state = 4;
 	}
 	if (FL_base_rectangle->distance <= 3)
 	{
-		printf("noise %d\n", FL_base_rectangle->distance);
-		snd_pcm_writei(pcm, samples, 9600);
-	}
-	if (FL_base_rectangle->distance == 4)
+		// printf("noise %d\n", FL_base_rectangle->distance);
+		snd_pcm_writei(pcm, samples, SAMPLE_COUNT);
+	} else
 	{
-		printf("shit up\n");
+		// clear the output buffer
+		// otherwise sound will keep playing untill the buffer is empty
+		snd_pcm_drop(pcm);
+		// printf("shut up %d\n", FL_base_rectangle->distance);
 	}
-
+	
 #endif
 	
 }
 
-void config_audio_settings(int rate, snd_pcm_hw_params_t *hw_params)
-{
-	
-	snd_pcm_hw_params_any(pcm, hw_params);
-	snd_pcm_hw_params_set_access(pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16_LE);
-	snd_pcm_hw_params_set_channels(pcm, hw_params, 1);
-	snd_pcm_hw_params_set_rate(pcm, hw_params, rate, 0);
-	snd_pcm_hw_params_set_periods(pcm, hw_params, 1, 0);
-	snd_pcm_hw_params_set_period_time(pcm, hw_params, 100000, 0); // 0.1 seconds	
-}
-
+#if USE_MP3 == 1
+	void config_audio_settings(int rate, snd_pcm_hw_params_t *hw_params)
+	{
+		
+		snd_pcm_hw_params_any(pcm, hw_params);
+		snd_pcm_hw_params_set_access(pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
+		snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16_LE);
+		snd_pcm_hw_params_set_channels(pcm, hw_params, 1);
+		snd_pcm_hw_params_set_rate(pcm, hw_params, rate, 0);
+		snd_pcm_hw_params_set_periods(pcm, hw_params, 1, 0);
+		snd_pcm_hw_params_set_period_time(pcm, hw_params, 100000, 0); // 0.1 seconds	
+	}
+#endif
 
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
@@ -384,23 +394,23 @@ int main(int argc, char** argv) {
 	BL_base_rectangle->keys->close_key = 'k';
 	BL_base_rectangle->keys->clear_key = 'l';
 
-	snd_pcm_open(&pcm, "default", SND_PCM_STREAM_PLAYBACK, 0);
+#if USE_MP3 == 1
+	// connect to the speakers, and configure them for playback in non-blocking mode
+	snd_pcm_open(&pcm, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 
-
-	
 	snd_pcm_hw_params_alloca(&hw_params_slow);
 	snd_pcm_hw_params_alloca(&hw_params_medium);
 	snd_pcm_hw_params_alloca(&hw_params_fast);
-	config_audio_settings(16000, hw_params_slow);
-	config_audio_settings(32000, hw_params_medium);
-	config_audio_settings(48000, hw_params_fast);
+	config_audio_settings(SLOW_RATE, hw_params_slow);
+	config_audio_settings(MEDIUM_RATE, hw_params_medium);
+	config_audio_settings(FAST_RATE, hw_params_fast);
 
 
 	static FILE* fp;
 	fp = fopen("beep-07a.wav","rb");
-	fread(samples, sizeof(short), 9600, fp);
+	fread(samples, sizeof(short), SAMPLE_COUNT, fp);
 	fclose(fp);
-
+#endif
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
