@@ -15,7 +15,7 @@
 
 // play audio corresponding to the distance to the object
 #define USE_SYSTEM_AUDIO 0
-#define USE_MP3 1
+#define USE_MP3 0
 
 
 #if USE_PARKING_SENSOR == 1

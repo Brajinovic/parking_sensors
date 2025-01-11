@@ -12,7 +12,7 @@
 #define FRAME_TRANSPARENCY 20
 #define ORDER_OFFSET 1
 
-#define DEBUG_DRAW 0
+#define DEBUG_DRAW 1
 
 struct keymap
 {

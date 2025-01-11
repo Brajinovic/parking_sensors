@@ -87,19 +87,11 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 	// get the microsecond part of the time and divide it by 1000 to get miliseconds
 	current_time = time.tv_usec / 1000;
 
-#if DEBUG_IDLE == 1
-	printf("\n%d\n", current_time);
-#endif
-
 	// calculate how mutch time has passed since the last time this function was called
 	factor = current_time - previous_time;
 	// given that the result can be negative, you need to check if it is negative and turn it to positive
 	factor = factor > 0 ? factor : factor * -1;
 
-#if DEBUG_IDLE == 1
-	printf("\nBase rectangle order: %d\n", base_rectangle->distance);
-#endif
-	printf(" ");
 	// with the help of struct rectangle member order, determine which tone is playing
 	// i.e. what should be the period of the audio sound
 	if (base_rectangle->distance == 1){

@@ -1,11 +1,10 @@
 #include "draw.h"
 
 
-
 // function for drawing rectangles based on the rectangle structure
 void draw_rectangle(struct rectangle* rect)
 {
-	// clear previous settings regarding the view matrix
+	// clear previous settings regarding the view matrix (used for rotations)
 	glLoadIdentity();
 	// rotate the view matrix for the desired angle
 	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
@@ -22,7 +21,7 @@ void draw_rectangle(struct rectangle* rect)
 		glVertex3f(rect->width, rect->height, 0.0f);
 		glVertex3f(0.0f, rect->height, 0.0f);	
 	glEnd();
-	glLoadIdentity();
+	// glLoadIdentity();
 }
 
 void calculate_rectangle_offset(struct rectangle* rectangle)
@@ -39,44 +38,23 @@ void calculate_rectangle_offset(struct rectangle* rectangle)
 // function for drawing the 3 "parking sensors"
 void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 {
-#if DEBUG == 1
-	printf("draw parking sensors\n");
-#endif
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
 	struct rectangle rectangle = *base_rectangle;
 	rectangle.rgba_color[3] = FRAME_TRANSPARENCY / 100.0f;
-	draw_rectangle(&rectangle);
-
-	// draw the first, base rectangle
-#if DEBUG_DRAW == 1
-	printf(" draw first rectangle\n");
-	printf(" x pos: %d\n", base_rectangle->x);
-#endif		
-
-
-	calculate_rectangle_offset(&rectangle);
-#if DEBUG_DRAW == 1
-	printf(" draw second rectangle\n");
-	printf(" x pos: %d\n", rectangle.x);
-#endif	
 
 	draw_rectangle(&rectangle);
 
 	calculate_rectangle_offset(&rectangle);
-#if DEBUG_DRAW == 1
-	printf(" draw third rectangle\n");
-	printf(" x pos: %d", rectangle.x);
-#endif			
+	draw_rectangle(&rectangle);
+
+	calculate_rectangle_offset(&rectangle);	
 	draw_rectangle(&rectangle);
 
 }
 
 void draw_parking_sensors(struct rectangle* base_rectangle)
 {
-#if DEBUG == 1
-	printf("draw parking sensors\n");
-#endif
 	// create a local copy of the base rectangle
 	// in order not to modify the real object
 
@@ -84,11 +62,6 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 	if (rectangle.distance == 1)
 	{
-		// draw the first, base rectangle
-#if DEBUG_DRAW == 1
-	printf(" draw first rectangle\n");
-	printf(" x pos: %d\n", base_rectangle->x);
-#endif		
 		draw_rectangle(&rectangle);
 	} else
 	{
@@ -99,12 +72,6 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 	if (rectangle.distance == 2)
 	{
-
-#if DEBUG_DRAW == 1
-	printf(" draw second rectangle\n");
-	printf(" x pos: %d\n", rectangle.x);
-#endif	
-
 		draw_rectangle(&rectangle);
 	} else
 	{
@@ -112,12 +79,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 	}
 	calculate_rectangle_offset(&rectangle);
 	if (rectangle.distance == 3)
-	{
-		
-#if DEBUG_DRAW == 1
-	printf(" draw third rectangle\n");
-	printf(" x pos: %d", rectangle.x);
-#endif			
+	{	
 		draw_rectangle(&rectangle);
 	} else
 	{
@@ -127,8 +89,7 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 
 void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectangle* FR_base_rectangle, struct rectangle* BL_base_rectangle, struct rectangle* BR_base_rectangle)
 {
-	display();
-
+	load_background();
 	draw_parking_sensors(FR_base_rectangle);
 	draw_parking_sensors(FL_base_rectangle);
 	draw_parking_sensors(BR_base_rectangle);

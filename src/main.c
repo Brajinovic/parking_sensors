@@ -151,21 +151,6 @@ void reshape(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-
-void draw_canvas(int width, int height)
-{
-
-	// create the canvas over the whole window
-	// pick the color (white in this case)
-	glColor3f(1.0, 1.0, 1.0);
-	// draw the canvas over the given area
-	glTexCoord2f(START_COORDINATE_X, WINDOW_HEIGHT); glVertex3f(0, 0, 0);
-	glTexCoord2f(WINDOW_WIDTH, WINDOW_HEIGHT); glVertex3f(width, 0, 0);
-	glTexCoord2f(WINDOW_WIDTH, START_COORDINATE_Y); glVertex3f(width, height, 0);
-	glTexCoord2f(START_COORDINATE_X, START_COORDINATE_Y); glVertex3f(0, height, 0);
-}
-
-
 void loadTexture()
 {
 #if DEBUG == 1
@@ -187,15 +172,11 @@ void loadTexture()
 
 }
 
-
-void display() {
-// debug printing
-#if DEBUG_DRAW == 1
-	printf("\nDisplay\n");
-#endif
-
+// issue #5
+void load_background()
+{
 	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_QUADS);
 	glColor3f(1.0, 1.0, 1.0);
 	
@@ -212,6 +193,15 @@ void display() {
 	draw_parking_sensor_outline(FL_base_rectangle);
 	draw_parking_sensor_outline(BR_base_rectangle);
 	draw_parking_sensor_outline(BL_base_rectangle);
+}
+
+void display() {
+// debug printing
+#if DEBUG_DRAW == 1
+	printf("Display\n");
+#endif
+
+	load_background();
 	// apply the drawings to the window
 	glutSwapBuffers();
 
@@ -221,9 +211,9 @@ void display() {
 void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 {
 	struct keymap* keys = base_rectangle->keys;
+
 	if (key == keys->far_key)
 	{
-
 		base_rectangle->distance = 3; // in case the close distance button has been pressed, set the order to 3
 
 	} else if (key == keys->middle_key)
@@ -247,10 +237,21 @@ void button_pressed(unsigned char key, int x, int y)
 	static int previous_key = 0;
 	// execute the following code only if there was a different key pressed
 	if (key != previous_key){
-		check_pressed_buttons(key, FR_base_rectangle);
-		check_pressed_buttons(key, FL_base_rectangle);
-		check_pressed_buttons(key, BR_base_rectangle);
-		check_pressed_buttons(key, BL_base_rectangle);
+		// there are only 4 keys for which I need to call each of these functions
+		if (key == FL_base_rectangle->keys->far_key || key == FL_base_rectangle->keys->middle_key || key == FL_base_rectangle->keys->close_key || key == FL_base_rectangle->keys->clear_key)
+		{
+			check_pressed_buttons(key, FL_base_rectangle);
+		} else if (key == FR_base_rectangle->keys->far_key || key == FR_base_rectangle->keys->middle_key || key == FR_base_rectangle->keys->close_key || key == FR_base_rectangle->keys->clear_key)
+		{
+			check_pressed_buttons(key, FR_base_rectangle);
+		} else if (key == BL_base_rectangle->keys->far_key || key == BL_base_rectangle->keys->middle_key || key == BL_base_rectangle->keys->close_key || key == BL_base_rectangle->keys->clear_key)
+		{ 
+			check_pressed_buttons(key, BL_base_rectangle);
+		} else
+		{	
+			check_pressed_buttons(key, BR_base_rectangle);
+		}
+		
 		// call the function for drawing the 3 rectangles representing the distances
 		// in the parking sensors
 	#if DEBUG_DRAW == 1
@@ -308,6 +309,10 @@ int checkState()
 
 	return current_state;
 }
+
+// this function is used for playing sound effects
+// and for when I am using sensor inputs, not keyboard inputs
+// for parking sensor activation
 void idle()
 {
 	static int past_state = 4;
@@ -318,6 +323,7 @@ void idle()
 		printf("Error when reading from UART!");
 	}
 #endif
+	// I might be able to move these 4 function calls under the USE_PARKING_SENSOR == 1 part
 	check_distance(FL_base_rectangle, display_thing, keycode, sensor_values);
 	check_distance(FR_base_rectangle, display_thing, keycode, sensor_values);
 	check_distance(BL_base_rectangle, display_thing, keycode, sensor_values);
@@ -326,7 +332,7 @@ void idle()
 
 #if USE_MP3 == 1
 	int state = checkState();
-	printf("distance: %d\n", state);
+
 	if (state == 3 && past_state != 3){
 		past_state = 3;	
 		snd_pcm_hw_params(pcm, hw_params_slow);
@@ -360,7 +366,6 @@ void idle()
 #if USE_MP3 == 1
 	void config_audio_settings(int rate, snd_pcm_hw_params_t *hw_params)
 	{
-		
 		snd_pcm_hw_params_any(pcm, hw_params);
 		snd_pcm_hw_params_set_access(pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 		snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16_LE);
@@ -370,6 +375,7 @@ void idle()
 		snd_pcm_hw_params_set_period_time(pcm, hw_params, 100000, 0); // 0.1 seconds	
 	}
 #endif
+
 
 int main(int argc, char** argv) {
 	// allocate the base rectangles for each parking sensor/corner of the car
