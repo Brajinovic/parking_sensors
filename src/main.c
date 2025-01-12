@@ -8,11 +8,6 @@
 // define return constants
 #define SUCCESS 1
 #define FAIL 0
-#define True 1
-#define False 0
-
-#define DEBUG 0
-#define DEBUG_IDLE 0
 
 // define origin coordinates
 #define START_COORDINATE_X 0
@@ -99,20 +94,12 @@ unsigned char* loadPPM(const char* filename, int* width, int* height) {
 
 		return NULL;
 	}
-
-#if DEBUG == 1
-	printf("\nloadPPM rawData[0]: %d\n", rawData[0]);
-#endif
-
 	return rawData;
 }
 
 
 void initGL()
 {
-#if DEBUG == 1
-	printf("\ninitGL\n");
-#endif
 	// init alpha blending function
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -134,9 +121,6 @@ void initGL()
 // this needs to be executed at least once in order to set the display properties :)
 void reshape(int width, int height)
 {
-#if DEBUG == 1
-	printf("\nreshape callback\n");
-#endif
 	// specify the top left corner coordinates
 	// specify the new rectangle width and height
 	glViewport(START_COORDINATE_X, START_COORDINATE_Y, width, height);
@@ -153,10 +137,6 @@ void reshape(int width, int height)
 
 void loadTexture()
 {
-#if DEBUG == 1
-	printf("\nloadTexture\n");
-#endif
-
 	GLuint texture[1]; // declaring space for one texture
 	int twidth, theight; // declaring variable for width and height of an image
 	unsigned char* tdata; // declaring pixel data
@@ -196,15 +176,10 @@ void load_background()
 }
 
 void display() {
-// debug printing
-#if DEBUG_DRAW == 1
-	printf("Display\n");
-#endif
-
 	load_background();
+
 	// apply the drawings to the window
 	glutSwapBuffers();
-
 }
 
 
@@ -254,9 +229,6 @@ void button_pressed(unsigned char key, int x, int y)
 		
 		// call the function for drawing the 3 rectangles representing the distances
 		// in the parking sensors
-	#if DEBUG_DRAW == 1
-		printf("call draw_parking_sensors \n");
-	#endif
 		draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 		previous_key = key;
 	} else
@@ -266,7 +238,7 @@ void button_pressed(unsigned char key, int x, int y)
 }
 
 
-void fill_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
+void populate_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
 {
 	// create the base rectangle structure and fill it with data
 	base_rectangle->width = 45.0f;
@@ -397,26 +369,26 @@ int main(int argc, char** argv) {
 	display_thing = XOpenDisplay(NULL);
 #endif
 
-	fill_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
+	populate_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
 	FR_base_rectangle->keys->far_key = 'q';
 	FR_base_rectangle->keys->middle_key = 'w';
 	FR_base_rectangle->keys->close_key = 'e';
 	FR_base_rectangle->keys->clear_key = 'r';
 
-	fill_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
+	populate_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
 	FL_base_rectangle->keys->far_key = 'a';
 	FL_base_rectangle->keys->middle_key = 's';
 	FL_base_rectangle->keys->close_key = 'd';
 	FL_base_rectangle->keys->clear_key = 'f';
 	
 
-	fill_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
+	populate_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
 	BR_base_rectangle->keys->far_key = 'z';
 	BR_base_rectangle->keys->middle_key = 'u';
 	BR_base_rectangle->keys->close_key = 'i';
 	BR_base_rectangle->keys->clear_key = 'o';
 
-	fill_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
+	populate_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
 	BL_base_rectangle->keys->far_key = 'h';
 	BL_base_rectangle->keys->middle_key = 'j';
 	BL_base_rectangle->keys->close_key = 'k';
@@ -439,6 +411,7 @@ int main(int argc, char** argv) {
 	fread(samples, sizeof(short), SAMPLE_COUNT, fp);
 	fclose(fp);
 #endif
+
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);

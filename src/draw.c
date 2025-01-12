@@ -1,7 +1,6 @@
 #include "draw.h"
 
 
-// function for drawing rectangles based on the rectangle structure
 void draw_rectangle(struct rectangle* rect)
 {
 	// clear previous settings regarding the view matrix (used for rotations)
@@ -21,7 +20,6 @@ void draw_rectangle(struct rectangle* rect)
 		glVertex3f(rect->width, rect->height, 0.0f);
 		glVertex3f(0.0f, rect->height, 0.0f);	
 	glEnd();
-	// glLoadIdentity();
 }
 
 void calculate_rectangle_offset(struct rectangle* rectangle)
@@ -53,19 +51,17 @@ void draw_parking_sensor_outline(struct rectangle* base_rectangle)
 
 }
 
-void draw_parking_sensors(struct rectangle* base_rectangle)
+void draw_active_rectangle(struct rectangle* base_rectangle)
 {
 	// create a local copy of the base rectangle
-	// in order not to modify the real object
-
+	// in order not to modify the main object
 	struct rectangle rectangle = *base_rectangle;
 
 	if (rectangle.distance == 1)
 	{
 		draw_rectangle(&rectangle);
 	} else
-	{
-		
+	{	
 	}
 
 	calculate_rectangle_offset(&rectangle);
@@ -75,25 +71,26 @@ void draw_parking_sensors(struct rectangle* base_rectangle)
 		draw_rectangle(&rectangle);
 	} else
 	{
-
 	}
+
 	calculate_rectangle_offset(&rectangle);
+	
 	if (rectangle.distance == 3)
 	{	
 		draw_rectangle(&rectangle);
 	} else
 	{
-
 	}
 }
 
 void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectangle* FR_base_rectangle, struct rectangle* BL_base_rectangle, struct rectangle* BR_base_rectangle)
 {
 	load_background();
-	draw_parking_sensors(FR_base_rectangle);
-	draw_parking_sensors(FL_base_rectangle);
-	draw_parking_sensors(BR_base_rectangle);
-	draw_parking_sensors(BL_base_rectangle);
+
+	draw_active_rectangle(FR_base_rectangle);
+	draw_active_rectangle(FL_base_rectangle);
+	draw_active_rectangle(BR_base_rectangle);
+	draw_active_rectangle(BL_base_rectangle);
 
 	glutSwapBuffers();
 }
