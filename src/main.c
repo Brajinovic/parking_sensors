@@ -1,4 +1,5 @@
-#include "idle.h"
+#include "keyboard_input_controller.h"
+#include "uart_input_controller.h"
 #include "uart_handler.h"
 
 
@@ -77,36 +78,7 @@ void display() {
 }
 
 
-void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
-{
-	// this is a final state machiene where I am checking how far away the obsticale is
-	// and writing that information into the distance attribute of the base rectangle
-	// later I am going to use this information in order to draw the proper active rectangle
-	// (this is one part of my final state machine)
 
-
-	// each parking sensor has unique keys on which he gets activated
-	// the specific keys are written in the base rectangle in the shape of struct keymap structure
-	struct keymap* keys = base_rectangle->keys;
-
-	if (key == keys->far_key)
-	{
-		base_rectangle->distance = 3; // in case the close distance button has been pressed, set the order to 3
-
-	} else if (key == keys->middle_key)
-	{
-		base_rectangle->distance = 2; // in case the middle distance button has been pressed, set the order to 2
-
-	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 1
-	{
-		base_rectangle->distance = 1;
-
-	} else if (key == keys->clear_key) // in case the clear button has been pressed, set the order to 4
-	{
-		base_rectangle->distance = 4;
-
-	} 
-}
 
 
 void on_button_pressed(unsigned char key, int x, int y)
@@ -146,31 +118,6 @@ void on_button_pressed(unsigned char key, int x, int y)
 	}
 }
 
-
-int checkState()
-{
-	int current_state = BASE_RECTANGLE_DEFAULT_DISTANCE;
-
-	if (current_state > FL_base_rectangle->distance)
-	{
-		current_state = FL_base_rectangle->distance;
-	}
-	if (current_state > FR_base_rectangle->distance)
-	{
-		current_state = FR_base_rectangle->distance;
-	}
-	if (current_state > BL_base_rectangle->distance)
-	{
-		current_state = BL_base_rectangle->distance;
-	}
-	if (current_state > BR_base_rectangle->distance)
-	{
-		current_state = BR_base_rectangle->distance;
-	}
-
-	return current_state;
-}
-
 // this function is used for playing sound effects
 // and for when I am using sensor inputs, not keyboard inputs
 // for parking sensor activation
@@ -183,16 +130,18 @@ void idle()
 	{
 		printf("Error when reading from UART!");
 	}
-#endif
+
 	// I might be able to move these 4 function calls under the USE_PARKING_SENSOR == 1 part
 	check_distance(FL_base_rectangle, display_thing, keycode, sensor_values);
 	check_distance(FR_base_rectangle, display_thing, keycode, sensor_values);
 	check_distance(BL_base_rectangle, display_thing, keycode, sensor_values);
 	check_distance(BR_base_rectangle, display_thing, keycode, sensor_values);
+#endif
+	
 
 
 #if USE_MP3 == 1
-	int state = checkState();
+	int state = check_state(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 
 	if (state == 3 && past_state != 3){
 		past_state = 3;	
@@ -211,7 +160,6 @@ void idle()
 	}
 	if (state <= 3)
 	{
-		// printf("noise %d\n", FL_base_rectangle->distance);
 		snd_pcm_writei(pcm, samples, SAMPLE_COUNT);
 	} else
 	{

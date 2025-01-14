@@ -1,4 +1,4 @@
-#include "uart_input_controll.h"
+#include "uart_input_controller.h"
 
 #if USE_PARKING_SENSOR == 1
 
@@ -7,7 +7,7 @@
 		keycode = XKeysymToKeycode(display_thing, key);
 		XTestFakeKeyEvent(display_thing, keycode, True, 0);
 		XTestFakeKeyEvent(display_thing, keycode, False, 0);
-		XFlush(display_thing); 
+		XFlush(display_thing);
 	}
 
 #endif
@@ -60,5 +60,3 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 	}
 #endif
 }
-
-
