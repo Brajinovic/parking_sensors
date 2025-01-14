@@ -13,6 +13,8 @@ Each struct rectangle member has a distance attribute which is used in the FSM t
 
 #include <GL/glut.h>
 #include <stdio.h>
+#include <string.h>
+#include "constants.h"
 
 #define WIDTH_OFFSET 38
 #define HEIGHT_OFFSET -1
@@ -43,6 +45,8 @@ struct rectangle{
 	struct keymap* keys;
 };
 
+unsigned char* loadPPM(const char* filename, int* width, int* height);
+void load_background();
 
 // Call this function when you want a specific rectangle to be drawn. All of the required info is contained inside the struct rectangle
 void draw_rectangle(struct rectangle*);
@@ -63,5 +67,8 @@ void draw_active_rectangle(struct rectangle*);
 // and writes the changes to the screen(glutSwapoutBuffers())
 void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
 
+void populate_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle);
+
+void loadTexture();
 
 #endif

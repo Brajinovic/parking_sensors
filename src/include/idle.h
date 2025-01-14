@@ -33,7 +33,7 @@
 
 
 #include "draw.h"
-
+#include "constants.h"
 
 
 void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values);

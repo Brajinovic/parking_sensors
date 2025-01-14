@@ -1,101 +1,33 @@
-#include <string.h>
-#include <errno.h>
 #include "idle.h"
-
 #include "uart_handler.h"
-#include "draw.h"
 
-// define return constants
-#define SUCCESS 1
-#define FAIL 0
-
-// define origin coordinates
-#define START_COORDINATE_X 0
-#define START_COORDINATE_Y 0
-
-// define window dimensions
-#define WINDOW_WIDTH 720
-#define WINDOW_HEIGHT 720
-
-// define depth
-#define MIN_HEIGHT -4
-#define MAX_HEIGHT 2
-
-// audio settings
-#define SLOW_RATE 16000
-#define MEDIUM_RATE 32000
-#define FAST_RATE 48000
-
-#define SAMPLE_COUNT 9600
 
 // front left base rectangle
-static struct rectangle* FL_base_rectangle = NULL;
+static struct rectangle* FL_base_rectangle = DEFAULT_PTR;
 // front right base rectangle
-static struct rectangle* FR_base_rectangle = NULL;
+static struct rectangle* FR_base_rectangle = DEFAULT_PTR;
 // back left base rectangle
-static struct rectangle* BL_base_rectangle = NULL;
+static struct rectangle* BL_base_rectangle = DEFAULT_PTR;
 // back right base rectangle
-static struct rectangle* BR_base_rectangle = NULL;
+static struct rectangle* BR_base_rectangle = DEFAULT_PTR;
 
 static int* sensor_values;
 
 // uart handler initialisation
-static Display *display_thing;
-static unsigned int keycode;
-static int fd;
+static Display *display_thing = DEFAULT_PTR;
+static unsigned int keycode = DEFAULT_INT;
+static int fd = DEFAULT_INT;
 
 #if USE_MP3 == 1
 	// audio controller instance pointer
 	static int pcm_open = 1;
-	static snd_pcm_t *pcm;
-	static snd_pcm_hw_params_t *hw_params_slow;
-	static snd_pcm_hw_params_t *hw_params_medium;
-	static snd_pcm_hw_params_t *hw_params_fast;
-	static short samples[9600];
+	static snd_pcm_t *pcm = DEFAULT_PTR;
+	static snd_pcm_hw_params_t *hw_params_slow = DEFAULT_PTR;
+	static snd_pcm_hw_params_t *hw_params_medium = DEFAULT_PTR;
+	static snd_pcm_hw_params_t *hw_params_fast = DEFAULT_PTR;
+	static short samples[SAMPLE_SIZE];
 #endif
 
-unsigned char* loadPPM(const char* filename, int* width, int* height) {
-	const int BUFSIZE = 128;
-	FILE* fp;
-	unsigned int read;
-	unsigned char* rawData;
-	char buf[3][BUFSIZE];
-	char* retval_fgets;
-	size_t retval_sscanf;
-	if ((fp = fopen(filename, "rb")) == NULL)
-	{
-		printf("error reading ppm file, could not locate %s", filename);
-		*width = 0;
-		*height = 0;
-
-		return NULL;
-	}
-	retval_fgets = fgets(buf[0], BUFSIZE, fp);
-	do
-	{
-		retval_fgets = fgets(buf[0], BUFSIZE, fp);
-	} while (buf[0][0] == '#');
-	retval_sscanf = sscanf(buf[0], "%s %s", buf[1], buf[2]);
-	*width = atoi(buf[1]);
-	*height = atoi(buf[2]);
-	do
-	{
-		retval_fgets = fgets(buf[0], BUFSIZE, fp);
-	} while (buf[0][0] == '#');
-	rawData = (char*)calloc(*width * *height, 3);
-	read = fread(rawData, (*width) * (*height) * 3, 1, fp);
-	fclose(fp);
-	if (read != 1)
-	{
-		printf("error parsing ppm file, incomplete data\n %s\n", strerror(errno));
-		memset(rawData, 0, *width * *height * 3);
-		*width = 0;
-		*height = 0;
-
-		return NULL;
-	}
-	return rawData;
-}
 
 
 void initGL()
@@ -135,48 +67,10 @@ void reshape(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void loadTexture()
-{
-	GLuint texture[1]; // declaring space for one texture
-	int twidth, theight; // declaring variable for width and height of an image
-	unsigned char* tdata; // declaring pixel data
-						  // loading image data from specific file:
-	tdata = loadPPM("auto3.ppm", &twidth, &theight);
-	if (tdata == NULL) return; // check if image data is loaded
-							   // generating a texture to show the image
-	glGenTextures(1, &texture[0]);
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-}
-
-// issue #5
-void load_background()
-{
-	glLoadIdentity();
-	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBegin(GL_QUADS);
-	glColor3f(1.0, 1.0, 1.0);
-	
-	// this is a specific way to load the image
-	// in here we are loading the image as a texture, drawing a rectangle and then 
-	// we apply this texture to the rectangle
-	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
-	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
-	glEnd();
-	
-	draw_parking_sensor_outline(FR_base_rectangle);
-	draw_parking_sensor_outline(FL_base_rectangle);
-	draw_parking_sensor_outline(BR_base_rectangle);
-	draw_parking_sensor_outline(BL_base_rectangle);
-}
 
 void display() {
-	load_background();
+	// load the background (image and parking sensor outlines)
+	load_background(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 
 	// apply the drawings to the window
 	glutSwapBuffers();
@@ -185,6 +79,14 @@ void display() {
 
 void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 {
+	// this is a final state machiene where I am checking how far away the obsticale is
+	// and writing that information into the distance attribute of the base rectangle
+	// later I am going to use this information in order to draw the proper active rectangle
+	// (this is one part of my final state machine)
+
+
+	// each parking sensor has unique keys on which he gets activated
+	// the specific keys are written in the base rectangle in the shape of struct keymap structure
 	struct keymap* keys = base_rectangle->keys;
 
 	if (key == keys->far_key)
@@ -207,12 +109,15 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 }
 
 
-void button_pressed(unsigned char key, int x, int y)
+void on_button_pressed(unsigned char key, int x, int y)
 {
-	static int previous_key = 0;
-	// execute the following code only if there was a different key pressed
+	static int previous_key = DEFAULT_INT;
+	// in case of the same consecutive input, there is no need to do any new computing
+
 	if (key != previous_key){
-		// there are only 4 keys for which I need to call each of these functions
+		// aditionally, there are only 12 keys I need to act uppon, 3 of which for each parking sensor
+		// so it doesn't make sense to call the check_pressesd_buttons function all the time (c.a. half the time), for each base rectangle
+		// i.e. times 4. So I saved 12 x 4 function calls. 
 		if (key == FL_base_rectangle->keys->far_key || key == FL_base_rectangle->keys->middle_key || key == FL_base_rectangle->keys->close_key || key == FL_base_rectangle->keys->clear_key)
 		{
 			check_pressed_buttons(key, FL_base_rectangle);
@@ -222,13 +127,17 @@ void button_pressed(unsigned char key, int x, int y)
 		} else if (key == BL_base_rectangle->keys->far_key || key == BL_base_rectangle->keys->middle_key || key == BL_base_rectangle->keys->close_key || key == BL_base_rectangle->keys->clear_key)
 		{ 
 			check_pressed_buttons(key, BL_base_rectangle);
-		} else
+		} else if (key == BR_base_rectangle->keys->far_key || key == BR_base_rectangle->keys->middle_key || key == BR_base_rectangle->keys->close_key || key == BR_base_rectangle->keys->clear_key)
 		{	
 			check_pressed_buttons(key, BR_base_rectangle);
+		} else
+		{
+
 		}
 		
-		// call the function for drawing the 3 rectangles representing the distances
-		// in the parking sensors
+		// call the function for drawing the 3 rectangles (for each parking sensor) 
+		// representing the distances in the parking sensors
+
 		draw_all_parking_sensors(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 		previous_key = key;
 	} else
@@ -238,29 +147,9 @@ void button_pressed(unsigned char key, int x, int y)
 }
 
 
-void populate_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
-{
-	// create the base rectangle structure and fill it with data
-	base_rectangle->width = 45.0f;
-	base_rectangle->height = 17.0f;
-	base_rectangle->angle = angle;
-	base_rectangle->x = x;
-	base_rectangle->y = y;
-	base_rectangle->distance = 4;
-	// using the RGBA color model, hence 4 bit array
-	// R - red
-	// G - green
-	// B - blue
-	// A - alpha (transparency)
-	base_rectangle->rgba_color[0] = 1.0f;
-	base_rectangle->rgba_color[1] = 0.0f;
-	base_rectangle->rgba_color[2] = 0.0f;
-	base_rectangle->rgba_color[3] = 1.0f;
-}
-
 int checkState()
 {
-	int current_state = 4;
+	int current_state = BASE_RECTANGLE_DEFAULT_DISTANCE;
 
 	if (current_state > FL_base_rectangle->distance)
 	{
@@ -287,7 +176,7 @@ int checkState()
 // for parking sensor activation
 void idle()
 {
-	static int past_state = 4;
+	static int past_state = BASE_RECTANGLE_DEFAULT_DISTANCE;
 #if USE_PARKING_SENSOR == 1
 	// read the parking sensor values
 	if (get_sensor_data(sensor_values, fd) == 0)
@@ -433,7 +322,7 @@ int main(int argc, char** argv) {
 	// function called when nothing else is executing and CPU is free
 	glutIdleFunc(idle);
 	// enable user input
-	glutKeyboardFunc(button_pressed);
+	glutKeyboardFunc(on_button_pressed);
 	initGL();
 	loadTexture();   //enable this to load image
 	
