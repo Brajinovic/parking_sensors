@@ -15,19 +15,19 @@ void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle)
 
 	if (key == keys->far_key)
 	{
-		base_rectangle->distance = 3; // in case the close distance button has been pressed, set the order to 3
+		base_rectangle->distance = FAR; // in case the close distance button has been pressed, set the order to 3
 
 	} else if (key == keys->middle_key)
 	{
-		base_rectangle->distance = 2; // in case the middle distance button has been pressed, set the order to 2
+		base_rectangle->distance = MIDDLE; // in case the middle distance button has been pressed, set the order to 2
 
 	} else if (key == keys->close_key)	// in case the close distance button has been pressed, set the order to 1
 	{
-		base_rectangle->distance = 1;
+		base_rectangle->distance = CLOSE;
 
 	} else if (key == keys->clear_key) // in case the clear button has been pressed, set the order to 4
 	{
-		base_rectangle->distance = 4;
+		base_rectangle->distance = F_FAR;
 
 	} 
 }

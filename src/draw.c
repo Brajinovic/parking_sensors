@@ -69,10 +69,10 @@ void load_background(struct rectangle *FL_base_rectangle, struct rectangle* FR_b
 	// this is a specific way to load the image
 	// in here we are loading the image as a texture, drawing a rectangle and then 
 	// we apply this texture to the rectangle
-	glTexCoord2f(0, 1); glVertex3f(0, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, 0);
-	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, 0);
-	glTexCoord2f(0, 0); glVertex3f(0, WINDOW_HEIGHT * 0.25, 0);
+	glTexCoord2f(0, 1); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * 0.75, BASE_LEVEL);
+	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, BASE_LEVEL);
+	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, BASE_LEVEL);
+	glTexCoord2f(0, 0); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * 0.25, BASE_LEVEL);
 	glEnd();
 	
 	// draw the outline for each parking sensor
@@ -87,7 +87,7 @@ void draw_rectangle(struct rectangle* rect)
 	// clear previous settings regarding the view matrix (used for rotations)
 	glLoadIdentity();
 	// rotate the view matrix for the desired angle
-	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
+	glRotatef(rect->angle, FALSE, FALSE, TRUE);
 	// move the rotated object in the desired place
 	glTranslatef(rect->x, rect->y, -1.0f);
 	// set the color of the rectangle
@@ -96,10 +96,10 @@ void draw_rectangle(struct rectangle* rect)
 	// draw the rectangle in the corrdinate system origin 
 	// with the width and height informations located inside the structure rect
 	glBegin(GL_QUADS);
-		glVertex3f(0.0f, 0.0f, 0.0f);   
-		glVertex3f(rect->width, 0.0f, 0.0f);
-		glVertex3f(rect->width, rect->height, 0.0f);
-		glVertex3f(0.0f, rect->height, 0.0f);	
+		glVertex3f(START_COORDINATE_X, START_COORDINATE_Y, BASE_LEVEL);   
+		glVertex3f(rect->width, START_COORDINATE_Y, BASE_LEVEL);
+		glVertex3f(rect->width, rect->height, BASE_LEVEL);
+		glVertex3f(START_COORDINATE_X, rect->height, BASE_LEVEL);	
 	glEnd();
 }
 
@@ -141,7 +141,7 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 	// in order not to modify the main object
 	struct rectangle rectangle = *base_rectangle;
 
-	if (rectangle.distance == 1)
+	if (rectangle.distance == CLOSE)
 	{
 		draw_rectangle(&rectangle);
 	} else
@@ -150,7 +150,7 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 
 	calculate_rectangle_offset(&rectangle);
 
-	if (rectangle.distance == 2)
+	if (rectangle.distance == MIDDLE)
 	{
 		draw_rectangle(&rectangle);
 	} else
@@ -159,7 +159,7 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 
 	calculate_rectangle_offset(&rectangle);
 	
-	if (rectangle.distance == 3)
+	if (rectangle.distance == FAR)
 	{	
 		draw_rectangle(&rectangle);
 	} else
@@ -182,7 +182,7 @@ void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectan
 void loadTexture()
 {
 	GLuint texture[1]; // declaring space for one texture
-	int twidth = 0, theight = 0; // declaring variable for width and height of an image
+	int twidth, theight; // declaring variable for width and height of an image
 	unsigned char* tdata = DEFAULT_PTR; // declaring pixel data
 						  // loading image data from specific file:
 	tdata = loadPPM("auto3.ppm", &twidth, &theight);

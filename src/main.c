@@ -21,7 +21,7 @@ static int fd = DEFAULT_INT;
 
 #if USE_MP3 == 1
 	// audio controller instance pointer
-	static int pcm_open = 1;
+	static int pcm_open = PCM_INSTANCE_ID;
 	static snd_pcm_t *pcm = DEFAULT_PTR;
 	static snd_pcm_hw_params_t *hw_params_slow = DEFAULT_PTR;
 	static snd_pcm_hw_params_t *hw_params_medium = DEFAULT_PTR;
@@ -39,8 +39,8 @@ void initGL()
 	
 	glEnable(GL_TEXTURE_2D); // enable texture mapping
 	glShadeModel(GL_SMOOTH); // enable smooth shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // get clear background (black color)
-	glClearDepth(1.0f); // color depth buffer
+	glClearColor(FALSE, FALSE, FALSE, FALSE); // get clear background (black color)
+	glClearDepth(TRUE); // color depth buffer
 	glDepthFunc(GL_LEQUAL); // configuration of depth testing
 							// enable additional options regarding: perspective correction, anti-aliasing, etc
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -76,9 +76,6 @@ void display() {
 	// apply the drawings to the window
 	glutSwapBuffers();
 }
-
-
-
 
 
 void on_button_pressed(unsigned char key, int x, int y)
@@ -126,7 +123,7 @@ void idle()
 	static int past_state = BASE_RECTANGLE_DEFAULT_DISTANCE;
 #if USE_PARKING_SENSOR == 1
 	// read the parking sensor values
-	if (get_sensor_data(sensor_values, fd) == 0)
+	if (get_sensor_data(sensor_values, fd) == FAIL)
 	{
 		printf("Error when reading from UART!");
 	}
@@ -143,24 +140,24 @@ void idle()
 #if USE_MP3 == 1
 	int state = check_state(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 
-	if (state == 3 && past_state != 3){
-		past_state = 3;	
+	if (state == FAR && past_state != FAR){
+		past_state = FAR;	
 		snd_pcm_hw_params(pcm, hw_params_slow);
-	} else if (state == 2 && past_state != 2)
+	} else if (state == MIDDLE && past_state != MIDDLE)
 	{
-		past_state = 2;
+		past_state =  MIDDLE;
 		snd_pcm_hw_params(pcm, hw_params_medium);
-	} else if (state == 1 && past_state != 1)
+	} else if (state == CLOSE && past_state != CLOSE)
 	{
-		past_state = 1;
+		past_state = CLOSE;
 		snd_pcm_hw_params(pcm, hw_params_fast);
-	} else if (state == 4 && past_state != 4)
+	} else if (state == F_FAR && past_state != F_FAR)
 	{	
-		past_state = 4;
+		past_state = F_FAR;
 	}
-	if (state <= 3)
+	if (state <= FAR)
 	{
-		snd_pcm_writei(pcm, samples, SAMPLE_COUNT);
+		snd_pcm_writei(pcm, samples, SAMPLE_SIZE);
 	} else
 	{
 		// clear the output buffer
@@ -178,10 +175,10 @@ void idle()
 		snd_pcm_hw_params_any(pcm, hw_params);
 		snd_pcm_hw_params_set_access(pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 		snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16_LE);
-		snd_pcm_hw_params_set_channels(pcm, hw_params, 1);
+		snd_pcm_hw_params_set_channels(pcm, hw_params, CHANNEL_COUNT);
 		snd_pcm_hw_params_set_rate(pcm, hw_params, rate, 0);
-		snd_pcm_hw_params_set_periods(pcm, hw_params, 1, 0);
-		snd_pcm_hw_params_set_period_time(pcm, hw_params, 100000, 0); // 0.1 seconds	
+		snd_pcm_hw_params_set_periods(pcm, hw_params, NUMBER_OF_PERIODS, 0);
+		snd_pcm_hw_params_set_period_time(pcm, hw_params, PERIOD, 0); // 0.1 seconds	
 	}
 #endif
 
@@ -206,30 +203,30 @@ int main(int argc, char** argv) {
 	display_thing = XOpenDisplay(NULL);
 #endif
 
-	populate_base_rectangle(129.0f, -318.0f, 126.0f, FR_base_rectangle);
-	FR_base_rectangle->keys->far_key = 'q';
-	FR_base_rectangle->keys->middle_key = 'w';
-	FR_base_rectangle->keys->close_key = 'e';
-	FR_base_rectangle->keys->clear_key = 'r';
+	populate_base_rectangle(FR_X, FR_Y, FR_ROTATION, FR_base_rectangle);
+	FR_base_rectangle->keys->far_key = FR_FAR_KEY;
+	FR_base_rectangle->keys->middle_key = FR_MIDDLE_KEY;
+	FR_base_rectangle->keys->close_key = FR_CLOSE_KEY;
+	FR_base_rectangle->keys->clear_key = FR_F_FAR_KEY;
 
-	populate_base_rectangle(405.0f, 105.0f, 54.0f, FL_base_rectangle);
-	FL_base_rectangle->keys->far_key = 'a';
-	FL_base_rectangle->keys->middle_key = 's';
-	FL_base_rectangle->keys->close_key = 'd';
-	FL_base_rectangle->keys->clear_key = 'f';
+	populate_base_rectangle(FL_X, FL_Y, FL_ROTATION, FL_base_rectangle);
+	FL_base_rectangle->keys->far_key = FL_FAR_KEY;
+	FL_base_rectangle->keys->middle_key = FL_MIDDLE_KEY;
+	FL_base_rectangle->keys->close_key = FL_CLOSE_KEY;
+	FL_base_rectangle->keys->clear_key = FL_F_FAR_KEY;
 	
 
-	populate_base_rectangle(-610.0f, 260.0f, 233.0f, BR_base_rectangle);
-	BR_base_rectangle->keys->far_key = 'z';
-	BR_base_rectangle->keys->middle_key = 'u';
-	BR_base_rectangle->keys->close_key = 'i';
-	BR_base_rectangle->keys->clear_key = 'o';
+	populate_base_rectangle(BR_X, BR_Y, BR_ROTATION, BR_base_rectangle);
+	BR_base_rectangle->keys->far_key = BR_FAR_KEY;
+	BR_base_rectangle->keys->middle_key = BR_MIDDLE_KEY;
+	BR_base_rectangle->keys->close_key = BR_CLOSE_KEY;
+	BR_base_rectangle->keys->clear_key = BR_F_FAR_KEY;
 
-	populate_base_rectangle(25.0f, 693.0f, 310.0f, BL_base_rectangle);
-	BL_base_rectangle->keys->far_key = 'h';
-	BL_base_rectangle->keys->middle_key = 'j';
-	BL_base_rectangle->keys->close_key = 'k';
-	BL_base_rectangle->keys->clear_key = 'l';
+	populate_base_rectangle(BL_X, BL_Y, BL_ROTATION, BL_base_rectangle);
+	BL_base_rectangle->keys->far_key = BL_FAR_KEY;
+	BL_base_rectangle->keys->middle_key = BL_MIDDLE_KEY;
+	BL_base_rectangle->keys->close_key = BL_CLOSE_KEY;
+	BL_base_rectangle->keys->clear_key = BL_F_FAR_KEY;
 
 #if USE_MP3 == 1
 	// connect to the speakers, and configure them for playback in non-blocking mode
@@ -245,7 +242,7 @@ int main(int argc, char** argv) {
 
 	static FILE* fp;
 	fp = fopen("beep-07a.wav","rb");
-	fread(samples, sizeof(short), SAMPLE_COUNT, fp);
+	fread(samples, sizeof(short), SAMPLE_SIZE, fp);
 	fclose(fp);
 #endif
 
@@ -253,7 +250,7 @@ int main(int argc, char** argv) {
 	// initialize GLUT
 	glutInit(&argc, argv);
 	// set window position and size
-	glutInitWindowPosition(545, 180);
+	glutInitWindowPosition(WINDOW_X, WINDOW_Y);
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	// set the combination of predefined values for display mode
 	// set color space (Red, Green, Blue - RGB)
