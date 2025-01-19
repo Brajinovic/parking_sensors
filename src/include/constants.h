@@ -3,6 +3,7 @@
 
 // ################################################################
 //						GENERAL AREA
+// boolean values
 #define TRUE 1
 #define FALSE 0
 
@@ -15,6 +16,10 @@
 #define DEFAULT_PTR NULL
 #define DEFAULT_FLOAT 0.0
 
+// GLUT
+#define N_OF_TEXTURES 1
+#define TEXTURE_OFFSET_1 75
+#define TEXTURE_OFFSET_2 25
 // ##################################################################
 // 						WINDOW PROPERTIES
 
@@ -67,6 +72,9 @@
 #define BASE_RECTANGLE_BLUE 0
 #define BASE_RECTANGLE_ALPHA 1
 
+
+#define FRAME_TRANSPARENCY 10
+
 // base rectangle distance constants
 #define CLOSE 1
 #define MIDDLE 2
@@ -112,4 +120,9 @@
 #define BL_F_FAR_KEY 108 	// l
 
 // ############################################################
+// 							TTY - UART
+#define READ_MODE 0
+#define PARITY 0
+#define BLOCKING 0
+
 #endif

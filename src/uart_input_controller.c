@@ -4,21 +4,18 @@
 
 	void press_key(int key, Display *display_thing, unsigned int keycode)
 	{
+		// this function simulates a key press
 		keycode = XKeysymToKeycode(display_thing, key);
-		XTestFakeKeyEvent(display_thing, keycode, True, 0);
-		XTestFakeKeyEvent(display_thing, keycode, False, 0);
+		XTestFakeKeyEvent(display_thing, keycode, True, DEFAULT_INT);
+		XTestFakeKeyEvent(display_thing, keycode, False, DEFAULT_INT);
 		XFlush(display_thing);
 	}
 
-#endif
 
-void check_distance(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values)
+void check_distance_HC(struct rectangle* base_rectangle, Display *display_thing, unsigned int keycode, int* sensor_values)
 {
-
-// start of parking sensor logic
-// I am using the HC-SR04 ultrasonic sensors...
-#if USE_PARKING_SENSOR == 1
-
+	
+	// to be implemented - support for all sensors
 	if (*(sensor_values + 0) < 31)	// if the distance is less than 30 cm, that is state 1
 	{
 		// press the key only if there was a state change
@@ -58,5 +55,6 @@ void check_distance(struct rectangle* base_rectangle, Display *display_thing, un
 
 		}
 	}
-#endif
 }
+
+#endif

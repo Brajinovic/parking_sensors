@@ -12,25 +12,31 @@ unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	// buffer for raw picture data
 	unsigned char* rawData = DEFAULT_PTR;
 	
+	// file header data buffer
 	char buf[3][IMAGE_BUFFER_SIZE];
+	// return value pointer
 	char* retval_fgets = DEFAULT_PTR;
 	
 	size_t retval_sscanf;
 
+	// open the image
 	if ((fp = fopen(filename, "rb")) == NULL)
 	{
 		printf("error reading ppm file, could not locate %s", filename);
-		*width = 0;
-		*height = 0;
+		*width = DEFAULT_INT;
+		*height = DEFAULT_INT;
 
 		return_value = FAIL;
 	}
+
+	// load data into the buffer untill you reach '#', load header data
 	retval_fgets = fgets(buf[0], IMAGE_BUFFER_SIZE, fp);
 	do
 	{
 		retval_fgets = fgets(buf[0], IMAGE_BUFFER_SIZE, fp);
 	} while (buf[0][0] == '#');
 	
+	// read the width and height values of the image
 	retval_sscanf = sscanf(buf[0], "%s %s", buf[1], buf[2]);
 	*width = atoi(buf[1]);
 	*height = atoi(buf[2]);
@@ -40,16 +46,17 @@ unsigned char* loadPPM(const char* filename, int* width, int* height) {
 		retval_fgets = fgets(buf[0], IMAGE_BUFFER_SIZE, fp);
 	} while (buf[0][0] == '#');
 
+	// read the image data 
 	rawData = (char*)calloc(*width * *height, 3);
 	read = fread(rawData, (*width) * (*height) * 3, 1, fp);
 	fclose(fp);
-
-	if (read != 1)
+	// check the return value
+	if (read != TRUE)
 	{
 		printf("error parsing ppm file, incomplete data\n");
-		memset(rawData, 0, *width * *height * 3);
-		*width = 0;
-		*height = 0;
+		memset(rawData, DEFAULT_INT, *width * *height * 3);
+		*width = DEFAULT_INT;
+		*height = DEFAULT_INT;
 
 		return_value = FAIL;
 	}
@@ -69,10 +76,12 @@ void load_background(struct rectangle *FL_base_rectangle, struct rectangle* FR_b
 	// this is a specific way to load the image
 	// in here we are loading the image as a texture, drawing a rectangle and then 
 	// we apply this texture to the rectangle
-	glTexCoord2f(0, 1); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * 0.75, BASE_LEVEL);
-	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.75, BASE_LEVEL);
-	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * 0.25, BASE_LEVEL);
-	glTexCoord2f(0, 0); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * 0.25, BASE_LEVEL);
+
+	// (TEXTURE_OFFSET_* / 100.0) calculates the texture offset in percenteges
+	glTexCoord2f(0, 1); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * (TEXTURE_OFFSET_1 / 100.0), BASE_LEVEL);
+	glTexCoord2f(1, 1); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * (TEXTURE_OFFSET_1 / 100.0), BASE_LEVEL);
+	glTexCoord2f(1, 0); glVertex3f(WINDOW_WIDTH, WINDOW_HEIGHT * (TEXTURE_OFFSET_2 / 100.0), BASE_LEVEL);
+	glTexCoord2f(0, 0); glVertex3f(START_COORDINATE_X, WINDOW_HEIGHT * (TEXTURE_OFFSET_2 / 100.0), BASE_LEVEL);
 	glEnd();
 	
 	// draw the outline for each parking sensor
@@ -141,6 +150,12 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 	// in order not to modify the main object
 	struct rectangle rectangle = *base_rectangle;
 
+	// each base rectangle object has an attribute designating
+	// which of the three rectangles if and should be active
+	// that attribute is the distance attribute
+	// the following code is checking the value of the distance
+	// attribute and calling the rectangle draw function accordingly
+
 	if (rectangle.distance == CLOSE)
 	{
 		draw_rectangle(&rectangle);
@@ -148,6 +163,12 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 	{	
 	}
 
+	// because of base rectangles, there is a need to calculate
+	// the offsets for the second and third rectangle
+	// the function calculate_rectangle_offset servers that purpose
+	// in order not to modify the base rectangle, a local copy is created
+	// and the offset calculations are executed uppon that local
+	// copy
 	calculate_rectangle_offset(&rectangle);
 
 	if (rectangle.distance == MIDDLE)
@@ -167,10 +188,18 @@ void draw_active_rectangle(struct rectangle* base_rectangle)
 	}
 }
 
-void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectangle* FR_base_rectangle, struct rectangle* BL_base_rectangle, struct rectangle* BR_base_rectangle)
+
+void render_graphics(struct rectangle* FL_base_rectangle, struct rectangle* FR_base_rectangle, struct rectangle* BL_base_rectangle, struct rectangle* BR_base_rectangle)
 {
+
+	// when adding any new elements to the screen, 
+	// one needs to draw the whole screen from scratch
+	// load_background is tasked with that, clear the screen
+	// draw the background image and the parking sensor outline
 	load_background(FL_base_rectangle, FR_base_rectangle, BL_base_rectangle, BR_base_rectangle);
 
+	// after the background has been drawn, draw
+	// active parking sensor rectangles
 	draw_active_rectangle(FR_base_rectangle);
 	draw_active_rectangle(FL_base_rectangle);
 	draw_active_rectangle(BR_base_rectangle);
@@ -181,8 +210,8 @@ void draw_all_parking_sensors(struct rectangle* FL_base_rectangle, struct rectan
 
 void loadTexture()
 {
-	GLuint texture[1]; // declaring space for one texture
-	int twidth, theight; // declaring variable for width and height of an image
+	GLuint texture[N_OF_TEXTURES]; // declaring space for one texture
+	int twidth = DEFAULT_INT, theight = DEFAULT_INT; // declaring variable for width and height of an image
 	unsigned char* tdata = DEFAULT_PTR; // declaring pixel data
 						  // loading image data from specific file:
 	tdata = loadPPM("auto3.ppm", &twidth, &theight);
@@ -198,7 +227,8 @@ void loadTexture()
 
 void populate_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle)
 {
-	// create the base rectangle structure and fill it with data
+	// fill the base rectangle structure with data
+	
 	base_rectangle->width = BASE_RECTANGLE_WIDTH;
 	base_rectangle->height = BASE_RECTANGLE_HEIGHT;
 	base_rectangle->angle = angle;

@@ -4,10 +4,10 @@
 int set_interface_attribs (int fd, int speed, int parity)
 {
 	struct termios tty;
-	if (tcgetattr (fd, &tty) != 0)
+	if (tcgetattr (fd, &tty) != TRUE)
 	{
 			printf ("error %d from tcgetattr", errno);
-			return -1;
+			return FAIL;
 	}
 
 	cfsetospeed (&tty, speed);
@@ -16,18 +16,18 @@ int set_interface_attribs (int fd, int speed, int parity)
 	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
 	// disable IGNBRK for mismatched speed tests; otherwise receive break
 	// as \000 chars
-	tty.c_iflag &= ~IGNBRK;         // disable break processing
-	tty.c_lflag = 0;                // no signaling chars, no echo,
-									// no canonical processing
-	tty.c_oflag = 0;                // no remapping, no delays
-	tty.c_cc[VMIN]  = 0;            // read doesn't block
-	tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+	tty.c_iflag &= ~IGNBRK;         	// disable break processing
+	tty.c_lflag = 0;                	// no signaling chars, no echo,
+										// no canonical processing
+	tty.c_oflag = 0;                	// no remapping, no delays
+	tty.c_cc[VMIN]  = READ_MODE;        // read doesn't block
+	tty.c_cc[VTIME] = 5;            	// 0.5 seconds read timeout
 
 	tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
 
-	tty.c_cflag |= (CLOCAL | CREAD);// ignore modem controls,
-									// enable reading
-	tty.c_cflag &= ~(PARENB | PARODD);      // shut off parity
+	tty.c_cflag |= (CLOCAL | CREAD);	// ignore modem controls,
+										// enable reading
+	tty.c_cflag &= ~(PARENB | PARODD);  // shut off parity
 	tty.c_cflag |= parity;
 	tty.c_cflag &= ~CSTOPB;
 	tty.c_cflag &= ~CRTSCTS;
@@ -71,9 +71,9 @@ int get_sensor_data(int* sensor_values, int fd)
 	// temp variable to hold the sensor value
 	char rx_buffer[10];
 
-	int n = 0;
+	int n = DEFAULT_INT;
 
-	for (int i = 0; i < NUMBER_OF_SENSORS; i++)
+	for (int i = DEFAULT_INT; i < NUMBER_OF_SENSORS; i++)
 		{
 			sprintf(sensor_id, "%d", i); // put the index of the sensor inside the variable sensor
 			write (fd, sensor_id, 1); // ask for the data of the nth sensor
@@ -84,7 +84,7 @@ int get_sensor_data(int* sensor_values, int fd)
 			// convert the sensor value from string to int
 			*(sensor_values + i) = atoi(rx_buffer); 
 			// clean the buf in order to get rid of residual garbage
-			memset(rx_buffer, 0, sizeof(rx_buffer));
+			memset(rx_buffer, DEFAULT_INT, sizeof(rx_buffer));
 		}
 
 	return SUCCESS;
@@ -102,8 +102,8 @@ int config_uart(int* fd)
 		return FAIL;
 	}
 
-	set_interface_attribs (*fd, B9600, 0);  // set speed to 9,600 bps, 8n1 (no parity)
-	set_blocking (*fd, 0);                // set no blocking
+	set_interface_attribs (*fd, B9600, PARITY);  // set speed to 9,600 bps, 8n1 (no parity)
+	set_blocking (*fd, BLOCKING);                // set no blocking
 	return SUCCESS;
 }
 

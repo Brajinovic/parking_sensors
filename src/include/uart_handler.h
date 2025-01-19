@@ -10,10 +10,9 @@
 
 
 #include <stdlib.h>
+#include "constants.h"
 
 #define NUMBER_OF_SENSORS 3
-#define SUCCESS 1
-#define FAIL 0
 
 #define KEY_SIM 0
 

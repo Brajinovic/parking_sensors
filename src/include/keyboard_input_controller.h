@@ -4,7 +4,7 @@
 #include "draw.h"
 #include "constants.h"
 
-int check_state(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
+int check_distance(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
 void check_pressed_buttons(unsigned char key, struct rectangle* base_rectangle);
 
 

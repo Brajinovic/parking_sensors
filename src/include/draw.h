@@ -21,7 +21,6 @@ Each struct rectangle member has a distance attribute which is used in the FSM t
 #define X_OFFSET -16
 #define Y_OFFSET 21
 #define TRANSPARENCY_OFFSET -30 // in percentages
-#define FRAME_TRANSPARENCY 20
 #define ORDER_OFFSET 1
 
 #define DEBUG_DRAW 1
@@ -65,7 +64,7 @@ void draw_active_rectangle(struct rectangle*);
 
 // This function draws the background (display()), draws the active rectangles (draw_active_rectangle)
 // and writes the changes to the screen(glutSwapoutBuffers())
-void draw_all_parking_sensors(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
+void render_graphics(struct rectangle*, struct rectangle*, struct rectangle*, struct rectangle*);
 
 void populate_base_rectangle(float x, float y, float angle, struct rectangle* base_rectangle);
 
