@@ -96,7 +96,7 @@ void draw_rectangle(struct rectangle* rect)
 	// clear previous settings regarding the view matrix (used for rotations)
 	glLoadIdentity();
 	// rotate the view matrix for the desired angle
-	glRotatef(rect->angle, FALSE, FALSE, TRUE);
+	glRotatef(rect->angle, 0.0f, 0.0f, 1.0f);
 	// move the rotated object in the desired place
 	glTranslatef(rect->x, rect->y, -1.0f);
 	// set the color of the rectangle

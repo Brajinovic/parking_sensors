@@ -15,6 +15,7 @@ Each struct rectangle member has a distance attribute which is used in the FSM t
 #include <stdio.h>
 #include <string.h>
 #include "constants.h"
+#include <alsa/asoundlib.h>
 
 #define WIDTH_OFFSET 38
 #define HEIGHT_OFFSET -1
@@ -24,6 +25,7 @@ Each struct rectangle member has a distance attribute which is used in the FSM t
 #define ORDER_OFFSET 1
 
 #define DEBUG_DRAW 1
+#define USE_MP3 1
 
 struct keymap
 {

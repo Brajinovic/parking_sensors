@@ -1,6 +1,4 @@
 #include "keyboard_input_controller.h"
-#include "uart_input_controller.h"
-#include "uart_handler.h"
 
 
 // front left base rectangle
@@ -260,6 +258,7 @@ int main(int argc, char** argv) {
 	BR_base_rectangle->keys = (struct keymap*)malloc(sizeof(struct keymap));
 	
 #if USE_PARKING_SENSOR == 1
+	printf("init, config uart\n");
 	sensor_values  = (int*)calloc(sizeof(int), NUMBER_OF_SENSORS);
 	config_uart(&fd);
 	display_thing = XOpenDisplay(NULL);
@@ -290,7 +289,7 @@ int main(int argc, char** argv) {
 	BL_base_rectangle->keys->middle_key = BL_MIDDLE_KEY;
 	BL_base_rectangle->keys->close_key = BL_CLOSE_KEY;
 	BL_base_rectangle->keys->clear_key = BL_F_FAR_KEY;
-
+	printf("fill base rectangles");
 #if USE_MP3 == 1
 	// connect to the speakers, and configure them for playback in non-blocking mode
 	snd_pcm_open(&pcm, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
@@ -313,6 +312,7 @@ int main(int argc, char** argv) {
 	/* 1) INITIALIZATION */
 	// initialize GLUT
 	glutInit(&argc, argv);
+	printf("glut init\n");
 	// set window position and size
 	glutInitWindowPosition(WINDOW_X, WINDOW_Y);
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -336,7 +336,9 @@ int main(int argc, char** argv) {
 	loadTexture();   //enable this to load image
 	
 	/* 3) START GLUT PROCESSING CYCLE */
+	printf("start main proccess");
 	glutMainLoop();
+
 
 
 	return SUCCESS;
