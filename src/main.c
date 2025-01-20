@@ -30,7 +30,7 @@ static struct rectangle* BR_base_rectangle = DEFAULT_PTR;
 
 #if USE_MP3 == 1
 	// audio controller instance pointer
-	static int pcm_open = PCM_INSTANCE_ID;
+	//static int pcm_open = PCM_INSTANCE_ID;
 	static snd_pcm_t *pcm = DEFAULT_PTR;
 	// creating different configuration
 	// one for each playback sample rate to create
@@ -101,6 +101,8 @@ void display() {
 // value of the rectangle could change (depends on the key pressed)
 void on_button_pressed(unsigned char key, int x, int y)
 {
+	x = x;
+	y = y;
 	static int previous_key = DEFAULT_INT;
 
 	// only go forward if the same key is not

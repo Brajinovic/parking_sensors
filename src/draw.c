@@ -31,13 +31,25 @@ unsigned char* loadPPM(const char* filename, int* width, int* height) {
 
 	// load data into the buffer untill you reach '#', load header data
 	retval_fgets = fgets(buf[0], IMAGE_BUFFER_SIZE, fp);
+	if (retval_fgets == NULL)
+	{
+		return FAIL;
+	}
 	do
 	{
 		retval_fgets = fgets(buf[0], IMAGE_BUFFER_SIZE, fp);
+		if (retval_fgets == NULL)
+	{
+		return FAIL;
+	}
 	} while (buf[0][0] == '#');
 	
 	// read the width and height values of the image
 	retval_sscanf = sscanf(buf[0], "%s %s", buf[1], buf[2]);
+	if (retval_sscanf == 0)
+	{
+		return FAIL;
+	}
 	*width = atoi(buf[1]);
 	*height = atoi(buf[2]);
 	
@@ -47,7 +59,7 @@ unsigned char* loadPPM(const char* filename, int* width, int* height) {
 	} while (buf[0][0] == '#');
 
 	// read the image data 
-	rawData = (char*)calloc(*width * *height, 3);
+	rawData = (unsigned char*)calloc(*width * *height, 3);
 	read = fread(rawData, (*width) * (*height) * 3, 1, fp);
 	fclose(fp);
 	// check the return value
