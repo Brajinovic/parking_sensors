@@ -1,0 +1,4 @@
+Requirements:
+	- ncurses
+	- gcc
+	- make

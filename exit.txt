@@ -1,0 +1,3 @@
+gcc src/*.c -o bin/main.out -lncurses -Isrc/include
+./bin/main.out
+[?1049h[22;0;0t[1;53r(B[m[4l[?7h[?25l

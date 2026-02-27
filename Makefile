@@ -1,5 +1,5 @@
 SRCS =  *.c
-CFLAGS = -lglut -lGL -lasound -Isrc/include
+CFLAGS = -lncurses -Isrc/include
 vpath %.c $(src/)
 vpath %.o %(src/)
 
@@ -9,3 +9,6 @@ compile:
 
 run:
 	./bin/main.out
+
+clean:
+	rm ./bin/*
