@@ -9,9 +9,7 @@
 
 
 struct menu_template main_menu;
-struct menu_template results_menu;
-struct menu_template config_network_menu;
-struct menu_template new_network_menu;
+struct menu_template config_menu;
 
 
 // global variables
@@ -47,143 +45,97 @@ int main(int argc, char** argv)
   curs_set(0); // hide cursor
   
   fillMenu(&main_menu, 
-  				 NULL,
+			 NULL,
 
-  				 (struct menu_template*[]) {	// child menu
-  				 													NULL, 
-  																	&results_menu,
-  																  &config_network_menu,
-  																  &new_network_menu,
-  																  NULL},
-  				 (void (*[])(void)){ 					// callback function pointers
-  				 													&callbackStartLearning,
-  				 													NULL,
-  				 													NULL,
-  				 													&callbackNewNetwork,
-  				 													&callbackExit},
+			 (struct menu_template*[]) {	// child menu
+										NULL, 
+										&config_menu,
+										NULL},
+			 (void (*[])(void)){ 					// callback function pointers
+							&callbackStartUpload,
+							&callbackConfigSettings,
+							&callbackExit},
 
-  				 (char[][50]) {
-																	 "Start learning\0",
-																	 "Show results\0",
-																	 "Configure network\0",
-																	 "Create new network\0",
-																	 "Exit\0"}, 
-					 												 NUM_OF_ITEMS_MAIN_MENU);
+			 (char[][50]) {
+							 "Start upload\0",
+							 "Configure settings\0",
+							 "Exit\0"}, 
+							 NUM_OF_ITEMS_MAIN_MENU);
 
   
-  fillMenu(&results_menu, 
-  				 &main_menu,
-  				 (struct menu_template*[]){	// child
-  				 												 NULL, 
-  																 NULL,
-  																 NULL,
-  																 NULL},
-  				 (void (*[])(void)){ 				// callback function pointers
-  				 												 NULL,
-  				 												 NULL,
-  				 												 NULL,
-  				 												 &callbackLevelUp},
-  				 	(char[][50]) {
-																	 "Show last results\0",
-																	 "Show best model\0",
-																	 "Show last 10 results\0",
-																	 "Back\0"}, 
-																	 NUM_OF_ITEMS_RESULTS_MENU);
-
-  fillMenu(&config_network_menu, 
-  				 &main_menu,
-
-  				 (struct menu_template*[]){	// child menu
-  				 												 NULL, 
-  																 NULL,
-  																 NULL,
-  																 NULL},
-  				 (void (*[])(void)){ 				// callback function pointers
-  				 												 NULL,
-  				 												 NULL,
-  				 												 NULL,
-  				 												 &callbackLevelUp},
-  				 	(char[][50]) {
-																	 "Load last network\0",
-																	 "Load network\0",
-																	 "Load from file (ToDo)\0",
+  fillMenu(&config_menu, 
+				 &main_menu,
+				 (struct menu_template*[]){	// child
+																 NULL, 
+																 NULL,
+																 NULL},
+				 (void (*[])(void)){ 				// callback function pointers
+																 NULL,
+																 NULL,
+																 &callbackLevelUp},
+					(char[][50]) {
+																	 "COM port\0",
+																	 "UART bandwidth\0",
 																	 "Back\0"}, 
 																	 NUM_OF_ITEMS_CONFIG_MENU);
 
-  fillMenu(&new_network_menu, 
-  				 &main_menu,
-
-  				 (struct menu_template*[]){	// child menu
-  				 												 NULL, 
-  																 NULL,
-  																 NULL},
-  				 (void (*[])(void)){ 				// callback function pointers
-  				 												 NULL,
-  				 												 NULL,
-  				 												 &callbackLevelUp},
-  				 	(char[][50]) {
-																	 "Create new network (from scratch)\0",
-																	 "Create new network (from existing)\0",
-																	 "Back\0"}, 
-																	 NUM_OF_ITEMS_NEW_MENU);
 
 
-  // main_menu.items[1]->child_menu = &results_menu;
 
   num_of_items = main_menu.num_of_items;
   printMenu(&main_menu, row, col);
 
   while(1)
   {
-  	refresh();		
-  	input = getch();
+	refresh();		
+	input = getch();
 	  
-  	if (input == 66) // arrow key down
-  	{	
-  		cursor_index = ++cursor_index < num_of_items ? cursor_index++ : 0;
-  		active_menu->cursor_index = cursor_index;
-  	}
-  	else if (input == 65) // arrow key up
-  	{
-	  	cursor_index = --cursor_index >= 0 ? cursor_index-- : num_of_items - 1;
-	  	active_menu->cursor_index = cursor_index;
-  	}
-  	else if (input == 10) // enter
-  	{
-  		if (active_menu->items[cursor_index]->child_menu != NULL)
-  		{
-  			active_menu = active_menu->items[cursor_index]->child_menu;
-  			num_of_items = active_menu->num_of_items;
-  			cursor_index = 0;
-  		} else
-  		{
-  			mvprintw(0, 1, " No submenu! Checking for a callback function! \n\r");
-  			if (active_menu->items[cursor_index]->callback != NULL)
-  			{
-  				mvprintw(1, 1, " There is a callback!\n\r ");
-  				active_menu->items[cursor_index]->callback();
-  			} else
-  			{
-  				mvprintw(1, 1, " Well fuck it, no submenu or callback! \n\r");
-  			}
-  		}
+	if (input == 66) // arrow key down
+	{	
+		cursor_index = ++cursor_index < num_of_items ? cursor_index++ : 0;
+		active_menu->cursor_index = cursor_index;
+	}
+	else if (input == 65) // arrow key up
+	{
+		cursor_index = --cursor_index >= 0 ? cursor_index-- : num_of_items - 1;
+		active_menu->cursor_index = cursor_index;
+	}
+	else if (input == 10) // enter
+	{
+		if (active_menu->items[cursor_index]->child_menu != NULL)
+		{
+			active_menu = active_menu->items[cursor_index]->child_menu;
+			num_of_items = active_menu->num_of_items;
+			cursor_index = 0;
+		} else
+		{
+			mvprintw(0, 1, " No submenu! Checking for a callback function! \n\r");
+			if (active_menu->items[cursor_index]->callback != NULL)
+			{
+				mvprintw(1, 1, " There is a callback!\n\r ");
+				active_menu->items[cursor_index]->callback();
+			} else
+			{
+				mvprintw(1, 1, " Well fuck it, no submenu or callback! \n\r");
+			}
+		}
 			}
 		
 		if (level_up == 1)
 		{
 			active_menu = active_menu->items[cursor_index]->parent_menu;
 			num_of_items = active_menu->num_of_items;
-  		cursor_index = active_menu->cursor_index;
+		cursor_index = active_menu->cursor_index;
 			level_up = 0;
 		}
 
-  	if (input == 'q')
-  		exit_loop = 1;
+	if (input == 'q')
+		exit_loop = 1;
 
-  	if (exit_loop == 1)
-  		break;
-  	
-  	printMenu(active_menu, row, col);
+	if (exit_loop == 1)
+		break;
+	
+	printMenu(active_menu, row, col);
   }
 
   endwin();                       	/* End curses mode */
