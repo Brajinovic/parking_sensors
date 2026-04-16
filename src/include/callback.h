@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+void callbackValidation(void);
 void callbackStartUpload(void);
 void callbackConfigSettings(void);
 void callbackLevelUp(void);

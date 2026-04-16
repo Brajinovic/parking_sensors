@@ -6,7 +6,52 @@
 #include <stdint.h>
 
 #define DEBUG 0
-#define UART_EN 0
+#define UART_EN 1
+#define INSTRUCTION_LENGTH 4 		// in bytes
+#define INSTRUCTION_COUNT 4 		// number of instructions to be received
+
+
+void callbackValidation(void)
+{
+
+    mvprintw(1, 1, "Started validation! ");
+    getch();
+	int fd = open("/dev/ttyUSB1", O_RDWR);
+	int returnValue = set_interface_attribs (fd, B115200, 0); // set speed to 115,200 bps, 8n1 (no parity)
+	if ( returnValue == -1)
+	{
+		mvprintw(1, 1, "set_interface_attribs error: tcgetattr");
+		getch();
+		return;
+	} else if ( returnValue == -2 )
+	{
+
+		mvprintw(1, 1, "set_interface_attribs error: tcsetattr");
+		getch();
+		return;
+	}
+
+    set_blocking (fd, 1);                // set blocking
+mvprintw(1, 1, "Sth fucked validation! ");
+    getch();
+    uint8_t val_sequence = 0b11111111;
+    write(fd, &val_sequence, 1);
+    
+    for( int i = 0; i < INSTRUCTION_COUNT; i++)
+    {
+    	for (int j = 0; j < INSTRUCTION_LENGTH; j++)
+    	{
+    		read(fd, &val_sequence, 1);
+    		mvprintw(i * INSTRUCTION_COUNT + j, 1, "Received: %x", val_sequence);	
+    	}
+    	
+    }
+    
+    val_sequence = 0b11111111;
+    write(fd, &val_sequence, 1);
+    getch();
+}
+
 
 void callbackStartUpload(void)
 {
@@ -27,7 +72,7 @@ void callbackStartUpload(void)
 		return;
 	}
 
-    set_blocking (fd, 1);                // set no blocking
+    set_blocking (fd, 1);                // set blocking
     
     write(fd, "!!!", 3);
 #endif

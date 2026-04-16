@@ -49,16 +49,16 @@ int main(int argc, char** argv)
 
 			 (struct menu_template*[]) {	// child menu
 										NULL, 
-										&config_menu,
+										NULL,
 										NULL},
 			 (void (*[])(void)){ 					// callback function pointers
 							&callbackStartUpload,
-							&callbackConfigSettings,
+							&callbackValidation,
 							&callbackExit},
 
 			 (char[][50]) {
 							 "Start upload\0",
-							 "Configure settings\0",
+							 "Validation\0",
 							 "Exit\0"}, 
 							 NUM_OF_ITEMS_MAIN_MENU);
 
